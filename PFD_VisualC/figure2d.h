@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
@@ -8,4 +7,6 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-void VecToMat(points_t points, Mat &pm);
+float circle_f_rep(float x, float y);
+
+Mat_<float> circle(Mat_<float> X, Mat_<float> Y);

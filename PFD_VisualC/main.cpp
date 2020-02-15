@@ -4,18 +4,13 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "VecToMat.hpp"
+#include "vec_to_mat.hpp"
+#include "figure2d.h"
 
 using namespace std;
 using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
-
-//int circle(Mat X, Mat Y) {
-//
-//	return 
-//}
-
 
 
 int main()
@@ -39,7 +34,7 @@ int main()
 	//Mat pm = Mat(points);
 
 	Mat_<float> pm;
-	VecToMat(points, pm);
+	pm = VecToMat(points);
 
 	std::cout << pm << std::endl;
 
@@ -52,26 +47,20 @@ int main()
 
 
 	// 3x3 の行列
-	cv::Mat m1 = (cv::Mat_<double>(3, 3) << 1, 2, 3, 4, 5, 6, 7, 8, 9);
+	cv::Mat m1 = (cv::Mat_<float>(3, 2) << 1, 2, 3, 4, 5, 6);
 
-	std::cout << m1 << std::endl;
+	std::cout << m1 << "\n" << std::endl;
+	std::cout << m1.col(0) << "\n" << std::endl;
+	std::cout << m1.col(1) << "\n" << std::endl;
 
+	Mat_<float> f_rep;
+	f_rep = circle(m1.col(0), m1.col(1));
+
+	// 要素の総数
+	std::cout << "total:" << f_rep.total() << "\n" << std::endl;
 	// 0列目
-	std::cout << m1.col(0) << std::endl << std::endl;
+	std::cout << f_rep << std::endl << std::endl;
 
-
-	//Mat img = cv::Mat::zeros(500, 500, CV_8UC3);
-
-	//// Red，太さ3，4近傍連結
-	//line(img, cv::Point(100, 100), cv::Point(400, 105), cv::Scalar(0, 0, 200), 3, 4);
-	//// Green，太さ5，8近傍連結
-	//line(img, cv::Point(100, 200), cv::Point(400, 205), cv::Scalar(0, 200, 0), 5, 8);
-	//// Blue，太さ10，アンチエイリアス
-	//line(img, cv::Point(100, 300), cv::Point(400, 305), cv::Scalar(200, 0, 0), 10, CV_AA);
-
-	//cv::namedWindow("drawing", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO);
-	//cv::imshow("drawing", img);
-	//cv::waitKey(0);
 
 
 
