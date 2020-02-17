@@ -4,65 +4,53 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "vec_to_mat.hpp"
-#include "figure2d.h"
-
 using namespace std;
 using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
+#include <matplotlibcpp.h>
+namespace plt = matplotlibcpp;
+
+#include "vec_to_mat.hpp"
+#include "figure2d.h"
+#include "tools2d.h"
+
 
 int main()
 {
-	std::cout << "Hello World!\n" << endl;
+	// 2x3 の行列
+	Mat m1 = (Mat_<double>(4, 2) << 1, 2, 7, 8, 3, 4, 5, 6);
 
-
-	// お試し定義
-	point_t p1(1, 2, 3);
-	point_t p2(4, 5, 6);
-	point_t p3(7, 8, 9);
-	points_t points{ p1, p2, p3 };
-
-	printf("%d\n", points.size());
-
-	for (int i = 0; i < points.size(); i++)
-	{
-		std::cout << points[i] << "\n" << endl;
-	}
-
-	//Mat pm = Mat(points);
-
-	Mat_<float> pm;
-	pm = VecToMat(points);
-
-	std::cout << pm << std::endl;
-
-	std::cout << "(" << pm.rows << ", " << pm.cols << ")\n" << std::endl;
-	// 要素の総数
-	std::cout << "total:" << pm.total() << std::endl;
-	// 0列目
-	std::cout << pm.col(0) << std::endl << std::endl;
-
-
-
-	// 3x3 の行列
-	cv::Mat m1 = (cv::Mat_<float>(3, 2) << 1, 2, 3, 4, 5, 6);
-
+	// m1
 	std::cout << m1 << "\n" << std::endl;
-	std::cout << m1.col(0) << "\n" << std::endl;
-	std::cout << m1.col(1) << "\n" << std::endl;
-
-	Mat_<float> f_rep;
-	f_rep = circle(m1.col(0), m1.col(1));
-
-	// 要素の総数
-	std::cout << "total:" << f_rep.total() << "\n" << std::endl;
-	// 0列目
-	std::cout << f_rep << std::endl << std::endl;
 
 
+	vector<double> aabb = build_aabb_2d(m1);
 
+	for (int i = 0; i < aabb.size(); i++)
+		printf("%lf,", aabb[i]);
+
+	printf("\n");
+
+
+	Mat m2 = Mat_<float>::zeros(1, 10);
+	// m2
+	std::cout << m2 << "\n" << std::endl;
+
+	Mat_<double> x = linspace(0, 4, 5);
+	Mat_<double> y = linspace(5, 7, 3);
+
+	std::cout << x << "\n" << std::endl;
+	std::cout << y << "\n\n" << std::endl;
+
+	Mat_<double> xx; 
+	Mat_<double> yy;
+
+	tie(xx, yy) = meshgrid2d(x, y);
+
+	std::cout << xx << "\n" << std::endl;
+	std::cout << yy << "\n\n" << std::endl;
 
 }
 

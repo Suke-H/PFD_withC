@@ -8,25 +8,32 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-float circle_f_rep(float x, float y) {
-	return x + y;
+
+// コンストラクタ
+circle::circle(double u_0, double v_0, double r)
+{
+	this->u_0 = u_0;
+	this->v_0 = v_0;
+	this->r = r;
 }
 
-Mat_<float> circle(Mat_<float> X, Mat_<float> Y) {
+// f_rep
+double circle::f_rep(double u, double v) {
+	//return r - sqrt(u*u + v * v);
+	return u + v;
+}
 
-	int N = X.rows;
-	printf("N:%d", N);
-	std::cout << X << "\n" << std::endl;
-	std::cout << Y << "\n" << std::endl;
+// f_repのリストを返す
+Mat_<double> circle::f_rep_list(Mat_<double> U, Mat_<double> V) {
+	int N = U.rows;
 
 	// 結果を保存するMat
-	Mat_<float> f_rep = Mat_<float>::zeros(1, N);
+	Mat_<float> result = Mat_<float>::zeros(1, N);
 
 	for (int i = 0; i < N; i++) {
-		printf("(%f, %f)\n", X(i, 0), Y(i, 0));
-		f_rep(0, i) = circle_f_rep(X(i, 0), Y(i, 0));
+		result(0, i) = f_rep(U(i, 0), V(i, 0));
 
 	}
 
-	return f_rep;
+	return result;
 }
