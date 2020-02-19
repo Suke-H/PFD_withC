@@ -36,3 +36,5 @@ _ReSharper.*/
 *.sln
 *.filters
 *.vcxproj
+
+/data

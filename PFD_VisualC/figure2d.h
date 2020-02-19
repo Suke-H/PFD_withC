@@ -7,14 +7,17 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-class circle
+class Circle
 {
 public:
 	double u_0, v_0, r;
 	double area = CV_PI * r * r;
 
-	circle(double u_0, double v_0, double r);
+	Circle(double u_0, double v_0, double r);
 	double f_rep(double u, double v);
 	Mat_<double> f_rep_list(Mat_<double> U, Mat_<double> V);
 
 };
+
+double circle_f_rep(double u, double v);
+Mat_<double> circle_f_rep_list(Mat_<double> U, Mat_<double> V);
