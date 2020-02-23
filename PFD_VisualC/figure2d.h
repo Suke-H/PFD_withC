@@ -10,10 +10,10 @@ typedef vector<point_t> points_t;
 class Circle
 {
 public:
-	double u_0, v_0, r;
-	double area = CV_PI * r * r;
-
+	double u_0, v_0, r, area;
+	// コンストラクタ
 	Circle(double u_0, double v_0, double r);
+	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 
@@ -23,8 +23,9 @@ class Line
 {
 public:
 	double a, b, c;
-
+	// コンストラクタ
 	Line(double a, double b, double c);
+	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 
@@ -35,8 +36,28 @@ class Inter2d
 public:
 	std::function<double(double, double)> f1;
 	std::function<double(double, double)> f2;
-
+	// コンストラクタ
 	Inter2d(std::function<double(double, double)> f1, std::function<double(double, double)> f2);
+	// f-rep
+	double f_rep(double u, double v);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
+
+};
+
+class Spin2d
+{
+public:
+	std::function<double(double, double)> f;
+	double u_0;
+	double v_0;
+	double t;
+	// コンストラクタ
+	Spin2d(std::function<double(double, double)> f, double u_0, double v_0, double t);
+	// 回転行列
+	cv::Mat_<double> r;
+	// 逆行列
+	cv::Mat_<double> r_inv;
+	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 
@@ -45,10 +66,10 @@ public:
 class Triangle
 {
 public:
-	double u_0, v_0, r, t;
-	double area = 3 * sqrt(3) / 4 * pow(r, 2);
-
+	double u_0, v_0, r, t, area;
+	// コンストラクタ
 	Triangle(double u_0, double v_0, double r, double deg);
+	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 
@@ -57,10 +78,10 @@ public:
 class Rectangle
 {
 public:
-	double u_0, v_0, w, h, t;
-	double area = w * h;
-
+	double u_0, v_0, w, h, t, area;
+	// コンストラクタ
 	Rectangle(double u_0, double v_0, double w, double h, double deg);
+	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 

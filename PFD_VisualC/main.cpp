@@ -17,7 +17,6 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-	
 	std::vector<int> v{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	v = random_sample(v, 5);
 	for (int i=0; i < v.size(); i++) {
@@ -31,7 +30,7 @@ int main()
 
 	cv::Mat aabb = (cv::Mat_<double>(1, 4) << -3, 3, -3, 3);
 
-	Rectangle r1(0, 0, 1, 1, 0);
+	Rectangle r1(0, 0, 1, 1, 45);
 
 	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f1 = 
 		std::bind(&Rectangle::f_rep_list, &r1, 
@@ -40,8 +39,7 @@ int main()
 	double d1 = r1.f_rep(0, 0);
 	cout << d1 << endl;
 
-
-	Triangle t1(1, 0, 2, 0);
+	Triangle t1(1, 0, 2, 60);
 
 	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f2 =
 	std::bind(&Triangle::f_rep_list, &t1,
@@ -57,7 +55,7 @@ int main()
 	cout << d2 << endl;
 
 
-	cv::Mat_<double> points = make_inside(f2, aabb, 1000);
+	cv::Mat_<double> points = make_inside(f1, aabb, 1000, 1.5, 500);
 
 	std::cout << points.rows << "\n" << std::endl;
 
