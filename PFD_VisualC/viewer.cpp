@@ -13,16 +13,16 @@ namespace plt = matplotlibcpp;
 
 #include "viewer.h"
 
-void plot_points2d(Mat_<double> points) {
+void plot_points2d(cv::Mat_<double> points) {
 
 	// 2ŽŸŒ³“_ŒQ‚ðu‚Æv‚É•ª‰ð
-	Mat u = points.col(0);
-	Mat v = points.col(1);
+	cv::Mat u = points.col(0);
+	cv::Mat v = points.col(1);
 
 	// cv::Mat‚ðstd::vector‚É•ÏŠ·
-	vector<double> u_vec;
+	std::vector<double> u_vec;
 	u.copyTo(u_vec);
-	vector<double> v_vec;
+	std::vector<double> v_vec;
 	v.copyTo(v_vec);
 
 	plt::plot(u, v, { {"color", "red"} ,{ "marker", "o" }, { "linestyle", "" }});

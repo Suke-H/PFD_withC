@@ -17,30 +17,49 @@ namespace plt = matplotlibcpp;
 
 int main()
 {
-	// 2x3 の行列
-	Mat m1 = (Mat_<double>(6, 2) << 1, 2, 7, 8, 3, 4, 5, 6, 2, 3, 4, 5);
+	
+	std::vector<int> v{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	v = random_sample(v, 5);
+	for (int i=0; i < v.size(); i++) {
+		cout << v[i] << "," << endl;
+	}
 
-	cout << m1 << "\n" << endl;
+	double n = random_value(10, 30);
+	cout << n << endl;
 
-	// m2
-	vector<int> del = { 1, 3};
-	Mat_<double> m2 = extract_rows(m1, del);
+	cout << "\n" << endl;
 
-	cout << m2 << "\n" << endl;
+	cv::Mat aabb = (cv::Mat_<double>(1, 4) << -3, 3, -3, 3);
 
-	Mat u = (Mat_<double>(1, 4) << 1.1, 2.2, 3.3, 4.4);
-	Mat v = (Mat_<double>(1, 4) << 5.5, 6.6, 7.7, 8.8);
+	Rectangle r1(0, 0, 1, 1, 0);
 
-	Mat_<double> uv = composition2d(u, v);
+	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f1 = 
+		std::bind(&Rectangle::f_rep_list, &r1, 
+					std::placeholders::_1, std::placeholders::_2);
 
-	cout << uv << "\n" << endl;
+	double d1 = r1.f_rep(0, 0);
+	cout << d1 << endl;
 
-	Circle c(0, 0, 1);
-	Mat aabb = (Mat_<double>(1, 4) << -1, 1, -1, 1);
 
-	Mat_<double> points = make_contour(circle_f_rep_list, aabb, 1, 1000, 0.01);
+	Triangle t1(1, 0, 2, 0);
 
-	/*cout << points << "\n" << endl;*/
+	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f2 =
+	std::bind(&Triangle::f_rep_list, &t1,
+	std::placeholders::_1, std::placeholders::_2);
+
+	Circle c1(0, 0, 1);
+
+	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f3 =
+	std::bind(&Circle::f_rep_list, &c1,
+	std::placeholders::_1, std::placeholders::_2);
+
+	double d2 = c1.f_rep(0, 0);
+	cout << d2 << endl;
+
+
+	cv::Mat_<double> points = make_inside(f2, aabb, 1000);
+
+	std::cout << points.rows << "\n" << std::endl;
 
 	plot_points2d(points);
 }

@@ -15,9 +15,53 @@ public:
 
 	Circle(double u_0, double v_0, double r);
 	double f_rep(double u, double v);
-	Mat_<double> f_rep_list(Mat_<double> U, Mat_<double> V);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
 
 };
 
-double circle_f_rep(double u, double v);
-Mat_<double> circle_f_rep_list(Mat_<double> U, Mat_<double> V);
+class Line
+{
+public:
+	double a, b, c;
+
+	Line(double a, double b, double c);
+	double f_rep(double u, double v);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
+
+};
+
+class Inter2d
+{
+public:
+	std::function<double(double, double)> f1;
+	std::function<double(double, double)> f2;
+
+	Inter2d(std::function<double(double, double)> f1, std::function<double(double, double)> f2);
+	double f_rep(double u, double v);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
+
+};
+
+class Triangle
+{
+public:
+	double u_0, v_0, r, t;
+	double area = 3 * sqrt(3) / 4 * pow(r, 2);
+
+	Triangle(double u_0, double v_0, double r, double deg);
+	double f_rep(double u, double v);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
+
+};
+
+class Rectangle
+{
+public:
+	double u_0, v_0, w, h, t;
+	double area = w * h;
+
+	Rectangle(double u_0, double v_0, double w, double h, double deg);
+	double f_rep(double u, double v);
+	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
+
+};

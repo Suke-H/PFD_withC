@@ -8,7 +8,5 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-#include <matplotlibcpp.h>
-namespace plt = matplotlibcpp;
+std::tuple<double, double, int, int, double, double> trans_pix(cv::Mat_<double> points);
 
-void plot_points2d(cv::Mat_<double> points);

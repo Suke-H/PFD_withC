@@ -8,18 +8,26 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-Mat_<double> composition2d(Mat_<double> u, Mat_<double> v);
+double random_value(double low, double high);
 
-Mat_<double> build_aabb_2d(Mat_<double> points);
+cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v);
 
-Mat_<double> linspace(double start, double stop, int num);
+cv::Mat_<double> build_aabb_2d(cv::Mat_<double> points);
 
-tuple<Mat_<double>, Mat_<double>> meshgrid2d(Mat_<double> U, Mat_<double> V);
+cv::Mat_<double> linspace(double start, double stop, int num);
 
-int vec_in(vector<int> v, int x);
+std::tuple<cv::Mat_<double>, cv::Mat_<double>> meshgrid2d(cv::Mat_<double> U, cv::Mat_<double> V);
 
-Mat_<double> delete_rows(Mat_<double> mat_in, vector<int> row_list);
+int vec_search(std::vector<int> v, int x);
 
-Mat_<double> extract_rows(Mat_<double> mat_in, vector<int> row_list);
+std::vector<int> random_sample(std::vector<int> v, int size);
 
-Mat_<double> make_contour(function<Mat_<double>(Mat_<double>, Mat_<double>)> f, Mat_<double> aabb, double aabb_size, int grid_num, double epsilon);
+cv::Mat_<double> delete_rows(cv::Mat_<double> Mat_in, std::vector<int> row_list);
+
+cv::Mat_<double> extract_rows(cv::Mat_<double> Mat_in, std::vector<int> row_list);
+
+cv::Mat_<double> make_contour(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, 
+	double aabb_size=1.5, int grid_num=1000, double epsilon=0.01);
+
+cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, int N,
+	double aabb_size = 1.5, int grid_num = 50);

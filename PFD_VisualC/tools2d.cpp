@@ -1,5 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 using namespace cv;
@@ -8,15 +10,29 @@ typedef vector<point_t> points_t;
 
 #include "tools2d.h"
 
+// low～highの範囲で実数の乱数を返す
+double random_value(double low, double high) {
+	// 乱数シード初期化
+	srand((unsigned int)time(NULL));
+
+	// 0～1の範囲の乱数(timeに依存するので2回ほど回しておく)
+	double num = (double)rand() / RAND_MAX;
+	num = (double)rand() / RAND_MAX;
+
+	// low～highに直す
+	return (high - low) * num + low;
+
+}
+
 //     [x1, x2, ..., xn]      [x1, y1]
 //     [y1, y2, ..., yn]  ->      :    
 //                            [xn, yn]
 // このように変形する
 
-Mat_<double> composition2d(Mat_<double> u, Mat_<double> v) {
-	//Mat_<double> uv = Mat::zeros(2, u.cols, CV_32F);
+cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v) {
+	//cv::Mat_<double> uv = Mat::zeros(2, u.cols, CV_32F);
 
-	vector<Mat> tmp{ u, v };
+	std::vector<Mat> tmp{ u, v };
 
 	// uvにuとvを移す
 	/*Mat A = uv.row(0);
@@ -24,35 +40,36 @@ Mat_<double> composition2d(Mat_<double> u, Mat_<double> v) {
 	Mat B = uv.row(1);
 	v.row(0).copyTo(uv);*/
 
-	Mat uv;
-	merge(tmp, uv);
+	cv::Mat uv;
+	cv::merge(tmp, uv);
 
 	// uvを転置
-	transpose(uv, uv);
+	cv::transpose(uv, uv);
 
 	return uv;
 }
 
-Mat_<double> build_aabb_2d(Mat_<double> points) {
+// pointsのAABBを作成
+cv::Mat_<double> build_aabb_2d(cv::Mat_<double> points) {
 	// pointsのu最大/最小, v最大/最小を見つける
-	Mat_<double> max_p, min_p;
-	reduce(points, max_p, 0, CV_REDUCE_MAX);
-	reduce(points, min_p, 0, CV_REDUCE_MIN);
+	cv::Mat_<double> max_p, min_p;
+	cv::reduce(points, max_p, 0, CV_REDUCE_MAX);
+	cv::reduce(points, min_p, 0, CV_REDUCE_MIN);
 
-	Mat aabb = (Mat_<double>(1, 4) << min_p(0, 0), max_p(0, 0), min_p(0, 1), max_p(0, 1));
+	cv::Mat aabb = (cv::Mat_<double>(1, 4) << min_p(0, 0), max_p(0, 0), min_p(0, 1), max_p(0, 1));
 
 	return aabb;
 }
 
 // 等差数列が入った配列を出力
 // 初項start, 終項stopと数列の数numを入力とする(公差は関数内で算出)
-Mat_<double> linspace(double start, double stop, int num) {
+cv::Mat_<double> linspace(double start, double stop, int num) {
 	
 	// 公差を算出
 	double step = (stop - start) / (num-1); 
 
 	// 等差数列をsequenceに入れていく
-	vector<double> sequence; 
+	std::vector<double> sequence; 
 	double tmp = start;
 
 	for (int i = 0; i < num; i++) {
@@ -60,23 +77,24 @@ Mat_<double> linspace(double start, double stop, int num) {
 		tmp += step;
 	}
 
-	Mat_<double> seq = Mat(sequence);
-	transpose(seq, seq);
+	// 縦ベクトルを横ベクトルに変換する
+	cv::Mat_<double> seq = Mat(sequence);
+	cv::transpose(seq, seq);
 	
 	return seq;
 }
 
 // u, vの配列をグリッド型にする
 // u = [1,2,3], v = [4,5] -> uu = [1,2,3,1,2,3], vv = [4,4,4,5,5,5]
-tuple<Mat_<double>, Mat_<double>> meshgrid2d(Mat_<double> U, Mat_<double> V) {
+tuple<cv::Mat_<double>, cv::Mat_<double>> meshgrid2d(cv::Mat_<double> U, cv::Mat_<double> V) {
 
-	vector<double> u;
-	vector<double> v;
+	std::vector<double> u;
+	std::vector<double> v;
 	U.copyTo(u);
 	V.copyTo(v);
 
-	vector<double> uu;
-	vector<double> vv;
+	std::vector<double> uu;
+	std::vector<double> vv;
 
 	// uuの処理
 	for (int i = 0; i < v.size(); i++) {
@@ -90,17 +108,17 @@ tuple<Mat_<double>, Mat_<double>> meshgrid2d(Mat_<double> U, Mat_<double> V) {
 		}
 	}
 
-	Mat_<double> mat_u = Mat(uu);
-	transpose(mat_u, mat_u);
-	Mat_<double> mat_v = Mat(vv);
-	transpose(mat_v, mat_v);
+	cv::Mat_<double> mat_u = Mat(uu);
+	cv::transpose(mat_u, mat_u);
+	cv::Mat_<double> mat_v = Mat(vv);
+	cv::transpose(mat_v, mat_v);
 
 	return forward_as_tuple(mat_u, mat_v);
 }
 
 // 配列vにxが存在するかチェックする
 // (intしか対応していない)
-int vec_in(vector<int> v, int x) {
+int vec_search(std::vector<int> v, int x) {
 
 	auto result = find(v.begin(), v.end(), x);
 
@@ -113,19 +131,41 @@ int vec_in(vector<int> v, int x) {
 
 }
 
-// row_listで指定された行をmat_inから削除する
-Mat_<double> delete_rows(Mat_<double> mat_in, vector<int> row_list) {
+std::vector<int> random_sample(std::vector<int> v, int size) {
+
+	// 乱数シード初期化
+	srand((unsigned int)time(NULL));
+
+	// vをシャッフルする
+	for (int i = 0; i < v.size(); i++) {
+		int j = rand() % v.size();
+		int t = v[i];
+		v[i] = v[j];
+		v[j] = t;
+	}
+
+	// v[0～size]を取り出す
+	std::vector<int> w;
+	for (int i = 0; i < size; i++) {
+		w.push_back(v[i]);
+	}
+
+	return w;
+}
+
+// row_listで指定された行をcv::Mat_inから削除する
+cv::Mat_<double> delete_rows(cv::Mat_<double> mat_in, std::vector<int> row_list) {
 	// 出力される行数
 	int out_rows = mat_in.rows - row_list.size();
 	// 出力
-	Mat_<double> mat_out = Mat::zeros(out_rows, mat_in.cols, CV_32F);
+	cv::Mat_<double> mat_out = Mat::zeros(out_rows, mat_in.cols, CV_32F);
 
 	int j = 0;
 	for (int i = 0; i < mat_in.rows; i++) {
 
 		// 削除リストに入ってない行を代入していく
-		if (!vec_in(row_list, i)) {
-			Mat A = mat_out.row(j);
+		if (!vec_search(row_list, i)) {
+			cv::Mat A = mat_out.row(j);
 			mat_in.row(i).copyTo(A);
 			j++;
 		}
@@ -135,18 +175,18 @@ Mat_<double> delete_rows(Mat_<double> mat_in, vector<int> row_list) {
 }
 
 // delete_rows()の逆で、mat_inからrow_listで指定された行を残す
-Mat_<double> extract_rows(Mat_<double> mat_in, vector<int> row_list) {
+cv::Mat_<double> extract_rows(cv::Mat_<double> mat_in, std::vector<int> row_list) {
 	// 出力される行数
 	int out_rows = row_list.size();
 	// 出力
-	Mat_<double> mat_out = Mat::zeros(out_rows, mat_in.cols, CV_32F);
+	cv::Mat_<double> mat_out = Mat::zeros(out_rows, mat_in.cols, CV_32F);
 
 	int j = 0;
 	for (int i = 0; i < mat_in.rows; i++) {
 
 		// 削除リストに入ってる行を代入していく
-		if (vec_in(row_list, i)) {
-			Mat A = mat_out.row(j);
+		if (vec_search(row_list, i)) {
+			cv::Mat A = mat_out.row(j);
 			mat_in.row(i).copyTo(A);
 			j++;
 		}
@@ -155,7 +195,9 @@ Mat_<double> extract_rows(Mat_<double> mat_in, vector<int> row_list) {
 	return mat_out;
 }
 
-Mat_<double> make_contour(function<Mat_<double>(Mat_<double>, Mat_<double>)> f, Mat_<double> aabb, double aabb_size, int grid_num, double epsilon) {
+// 図形の輪郭を描画するために、f-rep関数から輪郭の点群を作成
+cv::Mat_<double> make_contour(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, 
+	double aabb_size, int grid_num, double epsilon) {
 	// AABBのuv最大・最小値をとる
 	double umin = aabb(0, 0);
 	double umax = aabb(0, 1);
@@ -169,28 +211,22 @@ Mat_<double> make_contour(function<Mat_<double>(Mat_<double>, Mat_<double>)> f, 
 	vmin = vmin - (vmax - vmin) / 2 * aabb_size;
 
 	// AABBの範囲内でu, v座標の等差数列を作成
-	Mat_<double> u = linspace(umin, umax, grid_num);
-	Mat_<double> v = linspace(vmin, vmax, grid_num);
+	cv::Mat_<double> u = linspace(umin, umax, grid_num);
+	cv::Mat_<double> v = linspace(vmin, vmax, grid_num);
 
 	// AABB内の格子点にする
-	Mat_<double> uu;
-	Mat_<double> vv;
-	tie(uu, vv) = meshgrid2d(u, v);
-
-	//cout << u  << "\n" << v << "\n" << endl;
+	cv::Mat_<double> uu;
+	cv::Mat_<double> vv;
+	std::tie(uu, vv) = meshgrid2d(u, v);
 
 	// f-repの値をとる
-	Mat_<double> w = f(uu, vv);
-
-	//cout << w << "\n" << endl;
+	cv::Mat_<double> w = f(uu, vv);
 
 	// |f(u, v)| < εを満たす行は255、それ以外は0になる
-	Mat_<int> w_bool = abs(w) < epsilon;
-
-	//cout << w_bool << "\n" << endl;
+	cv::Mat_<int> w_bool = cv::abs(w) < epsilon;
 
 	// 255のインデックスを配列に保存
-	vector<int> row_list;
+	std::vector<int> row_list;
 
 	for (int i = 0; i < w_bool.cols; i++) {
 		if (w_bool(0, i) == 255) {
@@ -198,10 +234,75 @@ Mat_<double> make_contour(function<Mat_<double>(Mat_<double>, Mat_<double>)> f, 
 		}
 	}
 
+	// 条件を満たした(u, v)を抽出
+	cv::Mat_<double> uv = composition2d(uu, vv);
+	cv::Mat_<double> points = extract_rows(uv, row_list);
+
+	return points;
+}
+
+// 図形領域内部を描画するために、f-rep関数から内部の点群を作成
+// make_contour関数と違い、出力する点群数Nを入力に取る
+cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, int N,
+	double aabb_size, int grid_num) {
+	// AABBのuv最大・最小値をとる
+	double umin = aabb(0, 0);
+	double umax = aabb(0, 1);
+	double vmin = aabb(0, 2);
+	double vmax = aabb(0, 3);
+
+	// 描画範囲拡大のため、AABBをaabb_size倍にする
+	umax = umax + (umax - umin) / 2 * aabb_size;
+	umin = umin - (umax - umin) / 2 * aabb_size;
+	vmax = vmax + (vmax - vmin) / 2 * aabb_size;
+	vmin = vmin - (vmax - vmin) / 2 * aabb_size;
+
+	cv::Mat_<double> uu;
+	cv::Mat_<double> vv;
+	std::vector<int> row_list;
+
+	// 点群数がNに達するまで繰り返す
+	while (1) {
+
+		// AABBの範囲内でu, v座標の等差数列を作成
+		cv::Mat_<double> u = linspace(umin, umax, grid_num);
+		cv::Mat_<double> v = linspace(vmin, vmax, grid_num);
+
+		// AABB内の格子点にする
+		std::tie(uu, vv) = meshgrid2d(u, v);
+
+		// f-repの値をとる
+		cv::Mat_<double> w = f(uu, vv);
+
+		// |f(u, v)| >= 0を満たす行は255、それ以外は0になる
+		cv::Mat_<int> w_bool = w >= 0;
+
+		// 255のインデックスを配列に保存
+		for (int i = 0; i < w_bool.cols; i++) {
+			if (w_bool(0, i) == 255) {
+				row_list.push_back(i);
+			}
+		}
+
+		printf("size:%d\n", row_list.size());
+
+		// 条件を満たす点がN個以上あったら終了
+		if (row_list.size() >= N) {
+			row_list = random_sample(row_list, N);
+			break;
+		}
+
+		// grid_numを50足してやり直し
+		grid_num += 50;
+
+		// row_listをリセット
+		row_list.clear();
+		row_list.shrink_to_fit();
+	}
 
 	// 条件を満たした(u, v)を抽出
-	Mat_<double> uv = composition2d(uu, vv);
-	Mat_<double> points = extract_rows(uv, row_list);
+	cv::Mat_<double> uv = composition2d(uu, vv);
+	cv::Mat_<double> points = extract_rows(uv, row_list);
 
 	return points;
 }
