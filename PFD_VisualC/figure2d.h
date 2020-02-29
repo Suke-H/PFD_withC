@@ -68,7 +68,7 @@ class Triangle
 public:
 	double u_0, v_0, r, t, area;
 	// コンストラクタ
-	Triangle(double u_0, double v_0, double r, double deg);
+	Triangle(double u_0, double v_0, double r, double t);
 	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);
@@ -80,7 +80,7 @@ class Rectangle
 public:
 	double u_0, v_0, w, h, t, area;
 	// コンストラクタ
-	Rectangle(double u_0, double v_0, double w, double h, double deg);
+	Rectangle(double u_0, double v_0, double w, double h, double t);
 	// f-rep
 	double f_rep(double u, double v);
 	cv::Mat_<double> f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V);

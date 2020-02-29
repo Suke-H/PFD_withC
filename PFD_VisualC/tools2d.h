@@ -10,9 +10,11 @@ typedef vector<point_t> points_t;
 
 double random_value(double low, double high);
 
+std::tuple<cv::Mat_<double>, cv::Mat_<double>> disassemble2d(cv::Mat_<double> points);
+
 cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v);
 
-cv::Mat_<double> build_aabb_2d(cv::Mat_<double> points);
+std::tuple<cv::Mat_<double>, double> build_aabb2d(cv::Mat_<double> points);
 
 cv::Mat_<double> linspace(double start, double stop, int num);
 
@@ -30,4 +32,4 @@ cv::Mat_<double> make_contour(function<cv::Mat_<double>(cv::Mat_<double>, cv::Ma
 	double aabb_size=1.5, int grid_num=1000, double epsilon=0.01);
 
 cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, int N,
-	double aabb_size = 1.5, int grid_num = 50);
+	double aabb_size = 1.5, int grid_num = 200);

@@ -137,12 +137,12 @@ cv::Mat_<double> Spin2d::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 }
 
 // コンストラクタ
-Triangle::Triangle(double u_0, double v_0, double r, double deg)
+Triangle::Triangle(double u_0, double v_0, double r, double t)
 {
 	this->u_0 = u_0;
 	this->v_0 = v_0;
 	this->r = r;
-	this->t = deg * CV_PI / 180;
+	this->t = t;
 
 	// 面積
 	area = 3 * sqrt(3) / 4 * pow(r, 2);
@@ -194,13 +194,13 @@ cv::Mat_<double> Triangle::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 }
 
 // コンストラクタ
-Rectangle::Rectangle(double u_0, double v_0, double w, double h, double deg)
+Rectangle::Rectangle(double u_0, double v_0, double w, double h, double t)
 {
 	this->u_0 = u_0;
 	this->v_0 = v_0;
 	this->w = w;
 	this->h = h;
-	this->t = deg * CV_PI / 180;
+	this->t = t;
 
 	// 面積
 	area = w * h;
@@ -243,7 +243,7 @@ cv::Mat_<double> Rectangle::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 	int N = U.cols;
 
 	// 結果を保存するMat
-	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
+	cv::Mat_<double> result = cv::Mat_<double>::zeros(1, N);
 
 	for (int i = 0; i < N; i++) {
 		result(0, i) = f_rep(U(0, i), V(0, i));

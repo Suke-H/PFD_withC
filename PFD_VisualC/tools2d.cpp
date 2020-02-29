@@ -2,6 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdlib.h>
 #include <time.h>
+#include <random>
 
 using namespace std;
 using namespace cv;
@@ -12,17 +13,36 @@ typedef vector<point_t> points_t;
 
 // low～highの範囲で実数の乱数を返す
 double random_value(double low, double high) {
-	// 乱数シード初期化
-	srand((unsigned int)time(NULL));
+	
+	// mt19937という疑似乱数を利用
+	std::random_device rd;
+	std::mt19937 gen(rd());
 
-	// 0～1の範囲の乱数(timeに依存するので2回ほど回しておく)
-	double num = (double)rand() / RAND_MAX;
-	num = (double)rand() / RAND_MAX;
+	// 0～1の範囲での一様乱数を返す
+	double num = std::generate_canonical<double, 10>(gen);
 
 	// low～highに直す
 	return (high - low) * num + low;
 
 }
+
+//[x1, y1]         [x1, x2, ..., xn]
+//    :       ->   [y1, y2, ..., yn]
+//[xn, yn] 
+
+std::tuple<cv::Mat_<double>, cv::Mat_<double>> disassemble2d(cv::Mat_<double> points) {
+	//cv::Mat_<double> uv = Mat::zeros(2, u.cols, CV_32F);
+
+	cv::Mat_<double> u = points.col(0);
+	cv::Mat_<double> v = points.col(1);
+
+	// 転置
+	cv::transpose(u, u);
+	cv::transpose(v, v);
+
+	return std::forward_as_tuple(u, v);
+}
+
 
 //     [x1, x2, ..., xn]      [x1, y1]
 //     [y1, y2, ..., yn]  ->      :    
@@ -34,12 +54,6 @@ cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v) {
 
 	std::vector<Mat> tmp{ u, v };
 
-	// uvにuとvを移す
-	/*Mat A = uv.row(0);
-	u.row(0).copyTo(uv);
-	Mat B = uv.row(1);
-	v.row(0).copyTo(uv);*/
-
 	cv::Mat uv;
 	cv::merge(tmp, uv);
 
@@ -50,15 +64,20 @@ cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v) {
 }
 
 // pointsのAABBを作成
-cv::Mat_<double> build_aabb_2d(cv::Mat_<double> points) {
+std::tuple<cv::Mat_<double>, double> build_aabb2d(cv::Mat_<double> points) {
+
 	// pointsのu最大/最小, v最大/最小を見つける
 	cv::Mat_<double> max_p, min_p;
 	cv::reduce(points, max_p, 0, CV_REDUCE_MAX);
 	cv::reduce(points, min_p, 0, CV_REDUCE_MIN);
 
+	// AABB
 	cv::Mat aabb = (cv::Mat_<double>(1, 4) << min_p(0, 0), max_p(0, 0), min_p(0, 1), max_p(0, 1));
 
-	return aabb;
+	// AABBの対角線
+	double l = sqrt(pow((max_p(0, 0) - min_p(0, 0)), 2) + pow((max_p(0, 1) - min_p(0, 1)), 2));
+
+	return std::forward_as_tuple(aabb, l);
 }
 
 // 等差数列が入った配列を出力
@@ -152,6 +171,48 @@ std::vector<int> random_sample(std::vector<int> v, int size) {
 
 	return w;
 }
+
+//// std::vector<int>型の配列からランダムにsize個サンプリング
+//std::vector<int> random_sample(std::vector<int> v, int size) {
+//
+//	// 以後、rand_min～rand_maxの整数からランダムに"重複なし"でsize個とった配列を生成
+//	int rand_min = 0;
+//	int rand_max = v.size();
+//	std::vector<int> re(size);
+//
+//	// rand_min～rand_maxの整数の一様乱数
+//	std::uniform_int_distribution<int> rand(rand_min, rand_max);
+//	// 非決定的な乱数生成器を生成
+//	std::random_device rnd;
+//	//  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+//	auto mt = std::mt19937(rnd());
+//
+//	for (auto& i : re) {
+//		i = rand(mt);
+//	}
+//	bool is_all_no_conflict = false;
+//	do {
+//		is_all_no_conflict = true;
+//		for (auto j = re.begin(); j != re.end(); ++j) {
+//			for (auto k = j + 1; k != re.end(); ++k) {
+//				if (*k == *j) {
+//					*k = rand(mt);
+//					is_all_no_conflict = false;
+//				}
+//			}
+//		}
+//	} while (!is_all_no_conflict);
+//	
+//
+//	// 作成した配列の要素をインデックスとして並び替え
+//	std::vector<int> w;
+//
+//	for (int i = 0; i < size; i++) {
+//		w.push_back(v[re[i]]);
+//	}
+//
+//	return w;
+//}
 
 // row_listで指定された行をcv::Mat_inから削除する
 cv::Mat_<double> delete_rows(cv::Mat_<double> mat_in, std::vector<int> row_list) {
@@ -301,8 +362,11 @@ cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat
 	}
 
 	// 条件を満たした(u, v)を抽出
+	cout << "a" << endl;
 	cv::Mat_<double> uv = composition2d(uu, vv);
+	cout << "b" << endl;
 	cv::Mat_<double> points = extract_rows(uv, row_list);
+	cout << "c" << endl;
 
 	return points;
 }
