@@ -22,14 +22,17 @@ public:
 	// コンストラクタ
 	Person(int fig_type, std::vector<double> p);
 
+	// コピーコンストラクタ
+	//Person(const Person& person);
+
 	// 個体情報を出力
 	void profile();
 };
 
-// 1種類の図形単体のGA
-//Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area,
-//	int n_epoch = 300, int N = 100, int save_num = 10, int tournament_size = 10, 
-//	int half_reset_num = 15, int all_reset_num = 9);
+//1種類の図形単体のGA
+Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area,
+	int n_epoch = 300, int N = 100, int save_num = 10, int tournament_size = 10, 
+	int half_reset_num = 15, int all_reset_num = 9);
 
 // 3種類の図形単体GAを回してスコア最大の図形を選択
 //Person entire_ga(cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area);
@@ -57,4 +60,4 @@ std::tuple<std::vector<Person>, std::vector<double>> ranking(
 Person crossover(std::vector<Person> parents, int fig_type, cv::Mat_<double> aabb, double l);
 
 // 個体描画
-void draw_person(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area);
+void draw_person(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, cv::Mat_<double> aabb);

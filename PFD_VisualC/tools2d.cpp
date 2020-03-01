@@ -150,69 +150,69 @@ int vec_search(std::vector<int> v, int x) {
 
 }
 
-std::vector<int> random_sample(std::vector<int> v, int size) {
-
-	// 乱数シード初期化
-	srand((unsigned int)time(NULL));
-
-	// vをシャッフルする
-	for (int i = 0; i < v.size(); i++) {
-		int j = rand() % v.size();
-		int t = v[i];
-		v[i] = v[j];
-		v[j] = t;
-	}
-
-	// v[0～size]を取り出す
-	std::vector<int> w;
-	for (int i = 0; i < size; i++) {
-		w.push_back(v[i]);
-	}
-
-	return w;
-}
-
-//// std::vector<int>型の配列からランダムにsize個サンプリング
 //std::vector<int> random_sample(std::vector<int> v, int size) {
 //
-//	// 以後、rand_min～rand_maxの整数からランダムに"重複なし"でsize個とった配列を生成
-//	int rand_min = 0;
-//	int rand_max = v.size();
-//	std::vector<int> re(size);
+//	// 乱数シード初期化
+//	srand((unsigned int)time(NULL));
 //
-//	// rand_min～rand_maxの整数の一様乱数
-//	std::uniform_int_distribution<int> rand(rand_min, rand_max);
-//	// 非決定的な乱数生成器を生成
-//	std::random_device rnd;
-//	//  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
-//	auto mt = std::mt19937(rnd());
-//
-//	for (auto& i : re) {
-//		i = rand(mt);
+//	// vをシャッフルする
+//	for (int i = 0; i < v.size(); i++) {
+//		int j = rand() % v.size();
+//		int t = v[i];
+//		v[i] = v[j];
+//		v[j] = t;
 //	}
-//	bool is_all_no_conflict = false;
-//	do {
-//		is_all_no_conflict = true;
-//		for (auto j = re.begin(); j != re.end(); ++j) {
-//			for (auto k = j + 1; k != re.end(); ++k) {
-//				if (*k == *j) {
-//					*k = rand(mt);
-//					is_all_no_conflict = false;
-//				}
-//			}
-//		}
-//	} while (!is_all_no_conflict);
-//	
 //
-//	// 作成した配列の要素をインデックスとして並び替え
+//	// v[0～size]を取り出す
 //	std::vector<int> w;
-//
 //	for (int i = 0; i < size; i++) {
-//		w.push_back(v[re[i]]);
+//		w.push_back(v[i]);
 //	}
 //
 //	return w;
 //}
+
+// std::vector<int>型の配列からランダムにsize個サンプリング
+std::vector<int> random_sample(std::vector<int> v, int size) {
+
+	// 以後、rand_min～rand_maxの整数からランダムに"重複なし"でsize個とった配列を生成
+	int rand_min = 0;
+	int rand_max = v.size() - 1;
+	std::vector<int> re(size);
+
+	// rand_min～rand_maxの整数の一様乱数
+	std::uniform_int_distribution<int> rand(rand_min, rand_max);
+	// 非決定的な乱数生成器を生成
+	std::random_device rnd;
+	//  メルセンヌ・ツイスタの32ビット版、引数は初期シード値
+	auto mt = std::mt19937(rnd());
+
+	for (auto& i : re) {
+		i = rand(mt);
+	}
+	bool is_all_no_conflict = false;
+	do {
+		is_all_no_conflict = true;
+		for (auto j = re.begin(); j != re.end(); ++j) {
+			for (auto k = j + 1; k != re.end(); ++k) {
+				if (*k == *j) {
+					*k = rand(mt);
+					is_all_no_conflict = false;
+				}
+			}
+		}
+	} while (!is_all_no_conflict);
+	
+
+	// 作成した配列の要素をインデックスとして並び替え
+	std::vector<int> w;
+
+	for (int i = 0; i < size; i++) {
+		w.push_back(v[re[i]]);
+	}
+
+	return w;
+}
 
 // row_listで指定された行をcv::Mat_inから削除する
 cv::Mat_<double> delete_rows(cv::Mat_<double> mat_in, std::vector<int> row_list) {
@@ -362,11 +362,8 @@ cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat
 	}
 
 	// 条件を満たした(u, v)を抽出
-	cout << "a" << endl;
 	cv::Mat_<double> uv = composition2d(uu, vv);
-	cout << "b" << endl;
 	cv::Mat_<double> points = extract_rows(uv, row_list);
-	cout << "c" << endl;
 
 	return points;
 }

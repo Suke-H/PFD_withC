@@ -1,20 +1,17 @@
 ﻿#include <iostream>
 #include <opencv2/opencv.hpp>
 #include <random>
+#include <matplotlibcpp.h>
 
-
+namespace plt = matplotlibcpp;
 using namespace std;
 using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-#include <matplotlibcpp.h>
-namespace plt = matplotlibcpp;
-
 #include "vec_to_mat.hpp"
 #include "figure2d.h"
 #include "tools2d.h"
-#include "viewer.h"
 #include "ga.h"
 
 
@@ -25,14 +22,14 @@ int main()
 	cv::Mat aabb = (cv::Mat_<double>(1, 4) << -4.2, 4, -4, 4);
 
 	// 正解
-	Rectangle t1(1, 0, 1, 1, CV_PI/6);
+	Triangle t1(1, 0, 1, CV_PI/6);
 	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f1 =
-		std::bind(&Rectangle::f_rep_list, &t1, std::placeholders::_1, std::placeholders::_2);
+		std::bind(&Triangle::f_rep_list, &t1, std::placeholders::_1, std::placeholders::_2);
 
 	// 外枠
-	Rectangle t2(1, 0, 1.2, 1.2, CV_PI/6);
+	Triangle t2(1, 0, 1.2, CV_PI/6);
 	std::function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f2 =
-		std::bind(&Rectangle::f_rep_list, &t2, std::placeholders::_1, std::placeholders::_2);
+		std::bind(&Triangle::f_rep_list, &t2, std::placeholders::_1, std::placeholders::_2);
 
 	// 外枠の面積
 	double out_area = t2.area;
@@ -61,32 +58,9 @@ int main()
 	plt::show();
 	plt::close();*/
 
-	// 初期集団生成
-	int N = 10;
+	// GA
 	int fig_type = 1;
-	double l;
-	std::tie(aabb, l) = build_aabb2d(points);
-	std::vector<Person> people = create_random_population(N, fig_type, aabb, l);
-
-	for (int i = 0; i < people.size(); i++) {
-		cout << i << endl;
-		people[i].profile();
-		cout << endl;
-	}
-
-	// ランキング
-	std::vector<double> score_list;
-	std::tie(people, score_list) = ranking(people, points, out_points, out_area);
-
-	for (int i = 0; i < people.size(); i++) {
-		cout << score_list[i] << endl;
-	}
-
-	for (int i = 0; i < people.size(); i++) {
-		cout << i << endl;
-		people[i].profile();
-		cout << endl;
-	}
+	Person person(single_ga(fig_type, points, out_points, out_area));
 
 }
 

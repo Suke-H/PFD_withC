@@ -22,7 +22,7 @@ Circle::Circle(double u_0, double v_0, double r)
 
 // f_rep
 double Circle::f_rep(double u, double v) {
-	return r - sqrt(pow(u-u_0, 2) + pow(v-v_0, 2));
+	return r - std::sqrt(pow(u-u_0, 2) + pow(v-v_0, 2));
 }
 
 // f_rep‚ÌƒŠƒXƒg‚ð•Ô‚·
