@@ -56,30 +56,41 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 	double l;
 	std::tie(aabb, l) = build_aabb2d(points);
 
+	// 淘汰処理用のRESET指数を定義
+	int half_n = 0;
+	int all_n = 0;
+
+	// 前世代の1位のスコアを格納する変数
+	double prev_score = 0;
+
+	// 全淘汰前に1位を保存しておく配列
+	std::vector<Person> records;
+	std::vector<double> record_score;
+
+
 	// N人個体生成
 	std::vector<Person> generation = create_random_population(N, fig_type, aabb, l);
 
+	// GA開始
 	for (int epoch = 0; epoch < n_epoch; epoch++) {
 		cout << "epoch: " << epoch << endl;
 
 		// ランキング
 		std::tie(generation, std::ignore) = ranking(generation, points, out_points, out_area);
+
 		// 上位save_num人を保存
 		std::vector<Person> next_generation;
-
+		/*next_generation.reserve(save_num);
+		std::copy(generation.begin(), generation.begin() + save_num, next_generation.begin());*/
 		for (int i = 0; i < save_num; i++) {
 			next_generation.push_back(generation[i]);
 		}
-		
-		/*next_generation.resize(N);
-		std::copy(generation.begin(), generation.begin() + save_num, next_generation.begin());*/
 
 		// 次世代がN人を超すまで、トーナメント選択 -> 交叉 を繰り返す
 		while (next_generation.size() < N) {
 
 			// トーナメントサイズ分の人数出場
-			std::vector<Person> entry = random_sample_people(generation, tournament_size);
-
+			std::vector<Person> entry = random_sample_people(generation, tournament_size, 0, tournament_size-1);
 
 			// 図形の種類により交叉のときの親の個体数変更
 			int parent_num;
@@ -93,7 +104,7 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 				parent_num = 6;
 			}
 
-			//上位parent_num人優勝
+			// 上位parent_num人優勝
 			std::tie(entry, std::ignore) = ranking(entry, points, out_points, out_area);
 			std::vector<Person> winners;
 			for (int i = 0; i < parent_num; i++) {
@@ -101,32 +112,130 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 			}
 
 			// 勝者を交叉して次世代に追加
-			//next_generation.push_back(winners[0]);
 			next_generation.push_back(crossover(winners, fig_type, aabb, l));
 		}
 
-		// 次世代を現世代に
-
-		for (int i = 0; i < N; i++) {
+		// 次世代を現世代に移す
+		std::copy(next_generation.begin(), next_generation.begin() + N, generation.begin());
+		/*for (int i = 0; i < N; i++) {
 			generation[i] = next_generation[i];
+		}*/
+
+		// 以降、RESET処理
+		std::vector<double> score_list;
+		std::tie(generation, score_list) = ranking(generation, points, out_points, out_area);
+
+		// 現世代の1位のスコア保存
+		double current_score = score_list[0];
+
+		std::cout << prev_score << " vs " << current_score << endl;
+
+		// スコアが前世代と変わらないようならhalf_nを増やす
+		if (prev_score >= current_score) {
+			half_n++;
+		}
+		// スコアが増加したらhalf_nをリセット
+		else {
+			half_n = 0;
 		}
 
-		/*generation.resize(N);
-		std::copy(next_generation.begin(), next_generation.begin() + N, generation.begin());*/
+		// half_nが定めた値(=half_reset_num)に達したらall_nを増やし、half_nはリセット
+		if (half_n == half_reset_num) {
+			all_n++;
+			half_n = 0;
+
+			// all_nが定めた値(=all_reset_num)に達したら1位を記録して全数淘汰し、all_nはリセット
+			if (all_n == all_reset_num) {
+				records.push_back(generation[0]);
+				record_score.push_back(generation[0].score);
+				generation = create_random_population(N, fig_type, aabb, l);
+				all_n = 0;
+			}
+
+			// all_nが達していなかったら1位を除き半数淘汰
+			else {
+				// 半数の初期集団生成
+				int half_size = N / 2;
+				std::vector<Person> people = create_random_population(N/2, fig_type, aabb, l);
+				// 現世代から1位+半数を抽出
+				int sample_size = N - half_size;
+				Person best(generation[0]);
+				generation = random_sample_people(generation, sample_size - 1, 1, sample_size - 1);
+				generation.push_back(best);
+				// 合体
+				generation.reserve(generation.size() + people.size());
+				std::copy(people.begin(), people.end(), std::back_inserter(generation));
+			}
+
+		}
+
+		// 現在のスコアを前のスコアとして、終わり
+		prev_score = current_score;
+
+		std::cout << "(" << half_n << ", " << all_n << ")" << endl;
 
 		// 途中結果表示
-		if (epoch % 150 == 0) {
+		if (epoch % 10 == 0) {
 			std::vector<double> score_list;
 			std::tie(std::ignore, score_list) = ranking(generation, points, out_points, out_area);
-			draw_person(generation[0], points, out_points, aabb);
+			printf("score: ");
+			for (int i = 0; i < 10; i++) {
+				printf("%lf, ", score_list[i]);
+			}
+			printf("best: {");
+			for (int i = 0; i < generation[0].p.size(); i++) {
+				printf("%lf, ", generation[0].p[i]);
+			}
+			printf("}\n");
+			//draw_person(generation[0], points, out_points, aabb);
 
 		}
 	}
 
 	// 1位を出力
 	std::tie(generation, std::ignore) = ranking(generation, points, out_points, out_area);
-	draw_person(generation[0], points, out_points, aabb);
-	return generation[0];
+
+	printf("gene1: {");
+	for (int i = 0; i < generation[0].p.size(); i++) {
+		printf("%lf, ", generation[0].p[i]);
+	}
+	printf("}\n");
+
+	cout << "歴代と勝負" << endl;
+
+	// 記録した個体の中から歴代1位を決める
+	std::vector<double>::iterator iter = std::max_element(record_score.begin(), record_score.end());
+	size_t index = std::distance(record_score.begin(), iter);
+
+	printf("kako1: {");
+	for (int i = 0; i < records[index].p.size(); i++) {
+		printf("%lf, ", records[index].p[i]);
+	}
+	printf("}\n");
+	
+	// 最終世代の1位と記録した1位を比較していく
+	std::vector<double> best_p;
+	for (int i = 0; i < generation[0].p.size(); i++) {
+		best_p.push_back(generation[0].p[i]);
+	}
+
+	std::cout << generation[0].score << " vs " << record_score[index] << endl;
+	if (generation[0].score < record_score[index]) {
+		for (int i = 0; i < records[index].p.size(); i++) {
+			best_p[i] = (records[index].p[i]);
+		}
+	}
+
+	Person best(fig_type, best_p);
+
+	// 1位を出力
+	printf("best: {");
+	for (int i = 0; i < best.p.size(); i++) {
+		printf("%lf, ", best.p[i]);
+	}
+	printf("}\n");
+	draw_person(best, points, out_points, aabb);
+	return best;
 	
 }
 
@@ -197,11 +306,11 @@ std::vector<Person> create_random_population(int N, int fig_type, cv::Mat_<doubl
 }
 
 // std::vector<Person>型の配列からランダムにsize個サンプリング
-std::vector<Person> random_sample_people(std::vector<Person> people, int size) {
+// rand_min～rand_maxは取り出すインデックスの範囲(基本はrand_min=0, rand_max=size-1)
+// (size >= rand_min～rand_max間の数であることが条件)
+std::vector<Person> random_sample_people(std::vector<Person> people, int size, int rand_min, int rand_max) {
 
-	// 以後、rand_min～rand_max(0～size-1)の整数からランダムに"重複なし"でsize個とった配列reを生成
-	int rand_min = 0;
-	int rand_max = people.size() - 1;
+	// 以後、rand_min～rand_maxの整数からランダムに"重複なし"でsize個とった配列reを生成
 	std::vector<int> re(size);
 
 	// rand_min～rand_maxの整数の一様乱数
@@ -323,20 +432,18 @@ Person crossover(std::vector<Person> parents, int fig_type, cv::Mat_<double> aab
 	cv::Mat_<double> c = Mat::zeros(n + 1, n, CV_32F);
 	cv::Mat_<double> p = Mat::zeros(n + 1, n, CV_32F);
 
-	// 初項c[0], p[0]を算出
-	cv::Mat_<double> c_0 = g + alpha * (x.row(0) - g);
-	cv::Mat_<double> p_0 = Mat::zeros(1, n, CV_32F);
+	// 初項c[0], p[0]を算出(c_0は0ベクトルなので何もしない)
+	cv::Mat_<double> p_0 = g + alpha * (x.row(0) - g);
 
 	for (int j = 0; j < n; j++) {
-		c(0, j) = c_0(0, j);
 		p(0, j) = p_0(0, j);
 	}
 
 	// c[i], p[i](i = 1...n)を算出していく
 	for (int i = 1; i <= n; i++) {
 		double r = std::pow(random_value(0, 1), 1.0 / i);
-		cv::Mat_<double> c_i = g + alpha * (x.row(i) - g);
-		cv::Mat_<double> p_i = r * (p.row(i - 1) - p.row(i) + c.row(i - 1));
+		cv::Mat_<double> p_i = g + alpha * (x.row(i) - g);
+		cv::Mat_<double> c_i = r * (p.row(i - 1) - p_i + c.row(i - 1));
 
 		for (int j = 0; j < n; j++) {
 			c(i, j) = c_i(0, j);
@@ -346,6 +453,8 @@ Person crossover(std::vector<Person> parents, int fig_type, cv::Mat_<double> aab
 
 	// 子のパラメータはp[n] + c[n]となる
 	Mat_<double> child_p = c.row(n) + p.row(n);
+	//cout << child_p << endl;
+
 	std::vector<double> child_v;
 	child_p.copyTo(child_v);
 

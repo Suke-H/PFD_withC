@@ -13,7 +13,7 @@ typedef vector<point_t> points_t;
 #include "figure2d.h"
 #include "tools2d.h"
 #include "ga.h"
-
+#include "ga_score.h"
 
 int main()
 {
@@ -57,6 +57,21 @@ int main()
 	plt::plot(out_points.col(0), out_points.col(1), { {"color", "red"} ,{ "marker", "o"}, { "linestyle", ""} });
 	plt::show();
 	plt::close();*/
+
+	//std::vector<double> p{ 1, 0, 1.2, CV_PI / 6 };
+	//Person ans(1, p);
+	/*Person cpy(ans);
+	
+	for (int i = 0; i < cpy.p.size(); i++) {
+		printf("%lf, ", cpy.p[i]);
+	}
+	printf("\n");*/
+
+	std::vector<double> p{ 1, 0, 1.2, CV_PI / 6 };
+	Person ans(1, p);
+	double score = calc_score(ans, points, out_points, out_area, 1);
+	cout << "score: " << score << endl;
+	draw_person(ans, points, out_points, aabb);
 
 	// GA
 	int fig_type = 1;

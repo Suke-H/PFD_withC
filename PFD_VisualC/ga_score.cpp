@@ -59,7 +59,7 @@ int check_condition(Person person, cv::Mat_<double> points, cv::Mat_<double> aab
 
 // スコアを算出
 // score = Cin/Ain - Cout/Aout
-double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area) {
+double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area, int flag) {
 
 	// AABB生成
 	cv::Mat_<double> aabb;
@@ -102,7 +102,7 @@ double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_p
 
 	}	
 
-	// |f(u, v)| >= 0を満たす行は255、それ以外は0になる
+	// f(u, v) >= 0を満たす行は255、それ以外は0になる
 	cv::Mat_<int> w_bool = w >= 0;
 
 	// W >= 0の数をCinとして保存
@@ -111,8 +111,21 @@ double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_p
 	// inの密度計算
 	// c_out = 全点群数 - c_in
 	int c_out = points.rows - c_in;
-	// a_out = 輪郭の面積
-	int a_out = out_area;
+	// a_out = 輪郭の面積 - a_in
+	double a_out = out_area - a_in;
+
+	// 輪郭の面積 < 推定図形の面積なら大減点
+	if (a_out < 0) {
+		return -100;
+	}
+
+	if (flag) {
+		cout << c_in << "/" << a_in << "-" << c_out << "/" << a_out << endl;
+	}
+
+	if (a_in == 0) {
+		return c_in / a_in;
+	}
 
 	// score = Cin/Ain - Cout/Aout を出力
 	return c_in / a_in - c_out / a_out;

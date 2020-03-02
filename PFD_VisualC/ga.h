@@ -31,7 +31,7 @@ public:
 
 //1種類の図形単体のGA
 Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area,
-	int n_epoch = 300, int N = 100, int save_num = 10, int tournament_size = 10, 
+	int n_epoch = 300, int N = 100, int save_num = 5, int tournament_size = 20, 
 	int half_reset_num = 15, int all_reset_num = 9);
 
 // 3種類の図形単体GAを回してスコア最大の図形を選択
@@ -44,7 +44,9 @@ Person create_random_person(int fig_type, cv::Mat_<double> aabb, double l);
 std::vector<Person> create_random_population(int N, int fig_type, cv::Mat_<double> aabb, double l);
 
 // std::vector<Person>型の配列からランダムにsize個サンプリング
-std::vector<Person> random_sample_people(std::vector<Person> people, int size);
+// rand_min～rand_maxは取り出すインデックスの範囲(基本はrand_min=0, rand_max=size-1)
+// (size >= rand_min～rand_max間の数であることが条件)
+std::vector<Person> random_sample_people(std::vector<Person> people, int size, int rand_min, int rand_max);
 
 // std::vector<Person>型の配列をインデックス順に並び変える
 std::vector<Person> sort_people(std::vector<Person> people, std::vector<int> indices);

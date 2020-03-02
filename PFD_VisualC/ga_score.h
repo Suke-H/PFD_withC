@@ -14,4 +14,4 @@ int check_condition(Person person, cv::Mat_<double> points, cv::Mat_<double> aab
 
 // スコアを算出
 // score = Cin/Ain - Cout/Aout
-double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area);
+double calc_score(Person person, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area, int flag = 0);
