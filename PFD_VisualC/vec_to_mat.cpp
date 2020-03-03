@@ -1,7 +1,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "vec_to_mat.hpp"
+#include "vec_to_mat.h"
 
 using namespace std;
 using namespace cv;

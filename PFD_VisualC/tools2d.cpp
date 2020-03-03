@@ -11,6 +11,19 @@ typedef vector<point_t> points_t;
 
 #include "tools2d.h"
 
+// std::vector<double>型の配列をsize分プリントする
+void print_vec_double(std::vector<double> v, int size, std::string name) {
+
+	name += ": {";
+	printf("%s", name.c_str());
+
+	for (int i = 0; i < size; i++) {
+		printf("%lf, ", v[i]);
+	}
+
+	printf("}\n");
+}
+
 // low～highの範囲で実数の乱数を返す
 double random_value(double low, double high) {
 	
@@ -23,7 +36,6 @@ double random_value(double low, double high) {
 
 	// low～highに直す
 	return (high - low) * num + low;
-
 }
 
 //[x1, y1]         [x1, x2, ..., xn]
@@ -135,8 +147,7 @@ tuple<cv::Mat_<double>, cv::Mat_<double>> meshgrid2d(cv::Mat_<double> U, cv::Mat
 	return forward_as_tuple(mat_u, mat_v);
 }
 
-// 配列vにxが存在するかチェックする
-// (intしか対応していない)
+// std::vector<int>型の配列vにxが存在するかチェックする
 int vec_search(std::vector<int> v, int x) {
 
 	auto result = find(v.begin(), v.end(), x);
@@ -149,28 +160,6 @@ int vec_search(std::vector<int> v, int x) {
 	}
 
 }
-
-//std::vector<int> random_sample(std::vector<int> v, int size) {
-//
-//	// 乱数シード初期化
-//	srand((unsigned int)time(NULL));
-//
-//	// vをシャッフルする
-//	for (int i = 0; i < v.size(); i++) {
-//		int j = rand() % v.size();
-//		int t = v[i];
-//		v[i] = v[j];
-//		v[j] = t;
-//	}
-//
-//	// v[0～size]を取り出す
-//	std::vector<int> w;
-//	for (int i = 0; i < size; i++) {
-//		w.push_back(v[i]);
-//	}
-//
-//	return w;
-//}
 
 // std::vector<int>型の配列からランダムにsize個サンプリング
 std::vector<int> random_sample(std::vector<int> v, int size) {

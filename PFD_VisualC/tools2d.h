@@ -8,6 +8,9 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
+// std::vector<double>Œ^‚Ì”z—ñ‚ðsize•ªƒvƒŠƒ“ƒg‚·‚é
+void print_vec_double(std::vector<double> v, int size, std::string name);
+
 double random_value(double low, double high);
 
 std::tuple<cv::Mat_<double>, cv::Mat_<double>> disassemble2d(cv::Mat_<double> points);

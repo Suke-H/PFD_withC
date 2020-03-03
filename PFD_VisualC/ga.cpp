@@ -73,7 +73,7 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 
 	// GA開始
 	for (int epoch = 0; epoch < n_epoch; epoch++) {
-		cout << "epoch: " << epoch << endl;
+		//cout << "epoch: " << epoch << endl;
 
 		// ランキング
 		std::tie(generation, std::ignore) = ranking(generation, points, out_points, out_area);
@@ -128,8 +128,6 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 		// 現世代の1位のスコア保存
 		double current_score = score_list[0];
 
-		std::cout << prev_score << " vs " << current_score << endl;
-
 		// スコアが前世代と変わらないようならhalf_nを増やす
 		if (prev_score >= current_score) {
 			half_n++;
@@ -172,21 +170,12 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 		// 現在のスコアを前のスコアとして、終わり
 		prev_score = current_score;
 
-		std::cout << "(" << half_n << ", " << all_n << ")" << endl;
-
 		// 途中結果表示
-		if (epoch % 10 == 0) {
+		if (epoch % 50 == 0) {
 			std::vector<double> score_list;
 			std::tie(std::ignore, score_list) = ranking(generation, points, out_points, out_area);
-			printf("score: ");
-			for (int i = 0; i < 10; i++) {
-				printf("%lf, ", score_list[i]);
-			}
-			printf("best: {");
-			for (int i = 0; i < generation[0].p.size(); i++) {
-				printf("%lf, ", generation[0].p[i]);
-			}
-			printf("}\n");
+			print_vec_double(score_list, score_list.size(), "score");
+			print_vec_double(generation[0].p, generation[0].p.size(), "gene1");
 			//draw_person(generation[0], points, out_points, aabb);
 
 		}
@@ -194,48 +183,69 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 
 	// 1位を出力
 	std::tie(generation, std::ignore) = ranking(generation, points, out_points, out_area);
-
-	printf("gene1: {");
-	for (int i = 0; i < generation[0].p.size(); i++) {
-		printf("%lf, ", generation[0].p[i]);
-	}
-	printf("}\n");
-
-	cout << "歴代と勝負" << endl;
-
-	// 記録した個体の中から歴代1位を決める
-	std::vector<double>::iterator iter = std::max_element(record_score.begin(), record_score.end());
-	size_t index = std::distance(record_score.begin(), iter);
-
-	printf("kako1: {");
-	for (int i = 0; i < records[index].p.size(); i++) {
-		printf("%lf, ", records[index].p[i]);
-	}
-	printf("}\n");
-	
-	// 最終世代の1位と記録した1位を比較していく
+	print_vec_double(generation[0].p, generation[0].p.size(), "gene1");
+	// 1位の図形パラメータ
 	std::vector<double> best_p;
 	for (int i = 0; i < generation[0].p.size(); i++) {
 		best_p.push_back(generation[0].p[i]);
 	}
+	// 1位のスコア
+	double best_score = generation[0].score;
 
+	cout << "歴代と勝負" << endl;
+
+	// 記録した個体の中から1位のインデックスを取り出す
+	std::vector<double>::iterator iter = std::max_element(record_score.begin(), record_score.end());
+	size_t index = std::distance(record_score.begin(), iter);
+	print_vec_double(records[index].p, records[index].p.size(), "kako1");
+	
+	// 最終世代の1位と記録した1位を比較して、記録1位が勝ったら上書き
 	std::cout << generation[0].score << " vs " << record_score[index] << endl;
 	if (generation[0].score < record_score[index]) {
 		for (int i = 0; i < records[index].p.size(); i++) {
-			best_p[i] = (records[index].p[i]);
+			best_p[i] = records[index].p[i];
+			best_score = records[index].score;
 		}
 	}
 
+	// 最終結果をPersonクラスに格納
 	Person best(fig_type, best_p);
+	best.score = best_score;
+	best.score_flag = 1;
 
-	// 1位を出力
-	printf("best: {");
-	for (int i = 0; i < best.p.size(); i++) {
-		printf("%lf, ", best.p[i]);
-	}
-	printf("}\n");
+	print_vec_double(best.p, best.p.size(), "best");
 	draw_person(best, points, out_points, aabb);
 	return best;
+	
+}
+
+// 3種類の図形単体GAを回してスコア最大の図形を選択
+Person entire_ga(cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area) {
+
+	// 円、正三角形、長方形の3種類の図形単体GAを回す
+	cout << "円" << endl;
+	Person best_circle(single_ga(0, points, out_points, out_area));
+	cout << "正三角形" << endl;
+	Person best_tri(single_ga(1, points, out_points, out_area));
+	cout << "長方形" << endl;
+	Person best_rect(single_ga(2, points, out_points, out_area));
+
+	// スコアが一番高い図形を最終結果として出力
+	std::vector<double> score_list{ best_circle.score, best_tri.score, best_rect.score };
+	std::vector<double>::iterator iter = std::max_element(score_list.begin(), score_list.end());
+	size_t index = std::distance(score_list.begin(), iter);
+
+	if (index == 0) {
+		return best_circle;
+	}
+
+	else if (index == 1) {
+		return best_tri;
+	}
+
+	else {
+		return best_rect;
+	}
 	
 }
 
