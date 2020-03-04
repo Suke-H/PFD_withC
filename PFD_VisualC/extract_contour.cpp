@@ -7,6 +7,49 @@ typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
 #include "tools2d.h"
+#include "extract_contour.h"
+
+// 輪郭抽出
+std::tuple<int, cv::Mat_<double>, cv::Mat_<double>, double> extract_contour(cv::Mat_<double> points, int dilate_size, int close_size, int open_size, int add_size) {
+
+	// 点群->画像
+	cv::Mat pix;
+	double dx, dy, cx, cy;
+	int px, py;
+	std::tie(pix, dx, dy, px, py, cx, cy) = trans_pix(points);
+
+	// 画像からモルフォロジーを利用して、領域面積最大の輪郭点抽出
+	int ret;
+	std::vector< cv::Point > contour;
+	std::tie(ret, contour) = morphology(pix, dilate_size, close_size, open_size, add_size);
+
+	// モルフォロジー演算に失敗した場合の処理
+	if (!ret) {
+		return std::forward_as_tuple(0, cv::Mat_<double>::zeros(1, 1), cv::Mat_<double>::zeros(1, 1), 0);
+	}
+
+	// 画像->点群
+	cv::Mat_<double> contour_mat = trans_points(contour, dx, dy, px, py, cx, cy);
+
+	// 輪郭の面積
+	std::vector< cv::Point > contour_points = mat_to_vec2(contour_mat);
+	double area = cv::contourArea(contour_points);
+
+	// 輪郭の内外判定
+	std::vector<int> in_list;
+	for (int i = 0; i < points.rows; i++) {
+		if (inout_judgement(points(i, 0), points(i, 1), contour_mat)) {
+			in_list.push_back(i);
+		}
+	}
+
+	// 輪郭内にある点だけ抽出
+	points = extract_rows(points, in_list);
+
+	return std::forward_as_tuple(1, points, contour_mat, area);
+
+}
+
 
 // 点群を画像に変換
 std::tuple<cv::Mat, double, double, int, int, double, double> trans_pix(cv::Mat_<double> points) {
@@ -33,7 +76,7 @@ std::tuple<cv::Mat, double, double, int, int, double, double> trans_pix(cv::Mat_
 
 	for (int i = 0; i < py; i++) {
 
-		if (i % 100 == 0) {
+		if (i % 200 == 0) {
 			cout << i << endl;
 		}
 
@@ -56,8 +99,6 @@ std::tuple<cv::Mat, double, double, int, int, double, double> trans_pix(cv::Mat_
 
 			if ((int)maxVal == 1) {
 				pix.data[i * px + j] = 255;
-				//pix.at<int>(j, i) = 255;
-				//pix(i, j) = 255;
 			}
 		}
 	}
@@ -122,4 +163,60 @@ std::tuple<int, std::vector< cv::Point >> morphology(cv::Mat pix, int dilate_siz
 	cv::convexHull(max_contour, hull);
 
 	return std::forward_as_tuple(1, hull);
+}
+
+// 画像座標の輪郭点を点群座標に変換
+cv::Mat_<double> trans_points(std::vector< cv::Point >  contour, double dx, double dy, int px, int py, double cx, double cy) {
+
+	// 輪郭点の数
+	int N = contour.size();
+	// 出力する点群
+	Mat_<double> points = cv::Mat_<double>::zeros(N, 2);
+
+	// 画像座標の輪郭点を点群座標に変換
+	for (int i = 0; i < N; i++) {
+		points(i, 0) = cx + dx / px * (2 * contour[i].x + 1) / 2;
+		points(i, 1) = cy + dy / py * (2 * py - 2 * contour[i].y - 1) / 2;
+	}
+
+	return points;
+
+}
+
+
+// 点pが輪郭点contour内にあるかの判定
+int inout_judgement(double px, double py, cv::Mat_<double> contour) {
+
+	// 総交差数
+	int cross_count = 0;
+
+	// 輪郭点の数
+	int N = contour.rows;
+
+	for (int i1 = 0; i1 < N; i1++) {
+
+		int i2 = (i1 + 1) % N;
+
+		// 辺abのaとbの座標定義
+		double ax = contour(i1, 0), ay = contour(i1, 1), bx = contour(i2, 0), by = contour(i2, 1);
+
+		// ルール1, 2, 3
+		if (((ay <= py) && (by > py)) || ((ay > py) && (by <= py))) {
+
+			// ルール4: cx > pxなら交差する(cross_countを増やす)
+			double cx = (py * (ax - bx) + ay * bx - ax * by) / (ay - by);
+			if (cx > px) {
+				cross_count++;
+			}
+		}
+	}
+
+	// 交差数が偶数なら外、奇数なら内
+	if (cross_count % 2 == 0) {
+		return 0;
+	}
+
+	else {
+		return 1;
+	}
 }

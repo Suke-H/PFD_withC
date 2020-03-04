@@ -11,6 +11,36 @@ typedef vector<point_t> points_t;
 
 #include "tools2d.h"
 
+// points_t型をcv::Mat型に変換
+cv::Mat_<double> vec3_to_mat(points_t points)
+{
+	int height = (int)points.size(), width = 3;
+	cv::Mat_<double> matrix = cv::Mat_<double>::zeros(height, width);
+	for (int j = 0; j < height; j++)
+	{
+		matrix(j, 0) = points[j].x;
+		matrix(j, 1) = points[j].y;
+		matrix(j, 2) = points[j].z;
+
+	}
+	return matrix;
+}
+
+// cv::Mat型をstd::vector< cv::Point >型に変換
+std::vector< cv::Point > mat_to_vec2(cv::Mat_<double> mat)
+{
+	int N = mat.rows;
+	std::vector< cv::Point > points;
+
+	for (int i = 0; i < N; i++)
+	{
+		points.push_back(cv::Point(mat(i, 0), mat(i, 1)));
+
+	}
+
+	return points;
+}
+
 // std::vector<double>型の配列をsize分プリントする
 void print_vec_double(std::vector<double> v, int size, std::string name) {
 
@@ -24,7 +54,7 @@ void print_vec_double(std::vector<double> v, int size, std::string name) {
 	printf("}\n");
 }
 
-// low～highの範囲で実数の乱数を返す
+// low～highの範囲で一様乱数に基づいて実数を返す
 double random_value(double low, double high) {
 	
 	// mt19937という疑似乱数を利用
@@ -41,7 +71,7 @@ double random_value(double low, double high) {
 //[x1, y1]         [x1, x2, ..., xn]
 //    :       ->   [y1, y2, ..., yn]
 //[xn, yn] 
-
+// Mat_<double>型の2次元点群をx, yに分離
 std::tuple<cv::Mat_<double>, cv::Mat_<double>> disassemble2d(cv::Mat_<double> points) {
 	//cv::Mat_<double> uv = Mat::zeros(2, u.cols, CV_32F);
 
@@ -59,8 +89,7 @@ std::tuple<cv::Mat_<double>, cv::Mat_<double>> disassemble2d(cv::Mat_<double> po
 //     [x1, x2, ..., xn]      [x1, y1]
 //     [y1, y2, ..., yn]  ->      :    
 //                            [xn, yn]
-// このように変形する
-
+// Mat_<double>型のx, yを2次元点群に合成
 cv::Mat_<double> composition2d(cv::Mat_<double> u, cv::Mat_<double> v) {
 	//cv::Mat_<double> uv = Mat::zeros(2, u.cols, CV_32F);
 
@@ -92,8 +121,7 @@ std::tuple<cv::Mat_<double>, double> build_aabb2d(cv::Mat_<double> points) {
 	return std::forward_as_tuple(aabb, l);
 }
 
-// 等差数列が入った配列を出力
-// 初項start, 終項stopと数列の数numを入力とする(公差は関数内で算出)
+// 初項start, 終項stop, 数列の数numの等差数列が入った配列を出力
 cv::Mat_<double> linspace(double start, double stop, int num) {
 	
 	// 公差を算出
@@ -115,8 +143,8 @@ cv::Mat_<double> linspace(double start, double stop, int num) {
 	return seq;
 }
 
-// u, vの配列をグリッド型にする
 // u = [1,2,3], v = [4,5] -> uu = [1,2,3,1,2,3], vv = [4,4,4,5,5,5]
+// u, vの配列をグリッド型にする
 tuple<cv::Mat_<double>, cv::Mat_<double>> meshgrid2d(cv::Mat_<double> U, cv::Mat_<double> V) {
 
 	std::vector<double> u;
@@ -291,8 +319,7 @@ cv::Mat_<double> make_contour(function<cv::Mat_<double>(cv::Mat_<double>, cv::Ma
 	return points;
 }
 
-// 図形領域内部を描画するために、f-rep関数から内部の点群を作成
-// make_contour関数と違い、出力する点群数Nを入力に取る
+// 図形領域内部を描画するために、f-rep関数から内部の点群を作成(make_contour関数と違い、出力する点群数Nを入力に取る)
 cv::Mat_<double> make_inside(function<cv::Mat_<double>(cv::Mat_<double>, cv::Mat_<double>)> f, cv::Mat_<double> aabb, int N,
 	double aabb_size, int grid_num) {
 	// AABBのuv最大・最小値をとる

@@ -172,6 +172,7 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 
 		// “r’†Œ‹‰Ê•\Ž¦
 		if (epoch % 50 == 0) {
+			cout << "epoch: " << epoch << endl;
 			std::vector<double> score_list;
 			std::tie(std::ignore, score_list) = ranking(generation, points, out_points, out_area);
 			print_vec_double(score_list, score_list.size(), "score");
