@@ -8,7 +8,6 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-
 // コンストラクタ
 Circle::Circle(double u_0, double v_0, double r)
 {
