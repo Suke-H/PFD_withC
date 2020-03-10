@@ -7,10 +7,10 @@ using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-#include "tools2d.h"
-#include "figure3d.h"
+#include "tools.h"
+#include "figure.h"
 
-//平面にフィットした点を平面上にぴったし乗るように移動させる
+// 平面にフィットした点を平面上にぴったし乗るように移動させる
 cv::Mat_<double> put_points_on_plane(cv::Mat_<double> points, std::vector<double> plane_p) {
 
 	// 平面のクラス作成
@@ -76,17 +76,10 @@ std::tuple<cv::Mat_<double>, cv::Mat_<double>, cv::Mat_<double>, cv::Mat_<double
 	cv::Mat_<double> o_mat = vec3_to_mat(o_list);
 
 	// 二次元座標に変換
-
-	cout << "a" << endl;
-
 	cv::Mat_<double> points2d;
 	cv::Mat_<double> uv = (cv::Mat_<double>(3, 2) << u(0, 0), v(0, 0), u(0, 1), v(0, 1), u(0, 2), v(0, 2));
 
-	cout << points3d.size << ", " << o_mat.size << ", " << uv.size << endl;
-
 	points2d = (points3d - o_mat) * uv;
-
-	cout << "a" << endl;
 
 	return std::forward_as_tuple(points2d, u, v, o);
 	

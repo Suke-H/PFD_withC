@@ -7,8 +7,8 @@ using namespace std;
 using namespace cv;
 
 #include "ga.h"
-#include "tools2d.h"
-#include "figure2d.h"
+#include "tools.h"
+#include "figure.h"
 
 // スコア算出の前の条件チェック
 // aabb内に中心座標があるか・図形が小さすぎないか

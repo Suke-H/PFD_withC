@@ -7,9 +7,8 @@ typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
 #include "make_dataset.h"
-#include "tools2d.h"
-#include "tools3d.h"
-#include "figure2d.h"
+#include "tools.h"
+#include "figure.h"
 #include "projection.h"
 
 //sign_type: 標識
@@ -92,7 +91,7 @@ std::tuple<int, std::vector<double>, cv::Mat_<double>> set_sign2d(int sign_type,
 
 // 図形点群＋ノイズを合わせた点群、平面パラメータ、その他正解図形パラメータ等を出力
 std::tuple<cv::Mat_<double>, std::vector<double>, std::vector<double>, cv::Mat_<double>, cv::Mat_<double>, cv::Mat_<double>, cv::Mat_<double>, cv::Mat_<double>>
-	make_sign3d(int sign_type, int scale, double density, double noise_rate, double low, double high, int grid_num) {
+	make_sign3d(int sign_type, int scale, double density, double low, double high, int grid_num) {
 
 	/////  図形点群作成  /////
 
@@ -138,15 +137,6 @@ std::tuple<cv::Mat_<double>, std::vector<double>, std::vector<double>, cv::Mat_<
 		fig_size = (int)density * figure.area;
 		fig_points = make_inside(f, aabb2d, fig_size, 1, grid_num);
 	}
-
-	/////  ノイズ点群作成  /////
-
-	// ノイズ点群の数
-	int noise_size = (int)(noise_rate / (1 - noise_rate) * fig_size);
-
-	// 図形点群とノイズ点群を合わせた点群
-	/*cv::Mat_<double> points3d;*/
-
 
 	/////  平面に2D点群を射影  /////
 

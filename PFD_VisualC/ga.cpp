@@ -9,8 +9,8 @@ namespace plt = matplotlibcpp;
 using namespace std;
 using namespace cv;
 
-#include "tools2d.h"
-#include "figure2d.h"
+#include "tools.h"
+#include "figure.h"
 #include "ga.h"
 #include "ga_score.h"
 
@@ -20,18 +20,6 @@ Person::Person(int fig_type, std::vector<double> p) {
 	this->fig_type = fig_type;
 	this->p = p;
 }
-
-// コピーコンストラクタ
-//Person::Person(const Person& person){
-//
-//	fig_type = person.fig_type;
-//	
-//	for (int i = 0; i < person.p.size(); i++) {
-//		p.push_back(person.p[i]);
-//	}
-//
-//	cout << "コピーコンストラクタが呼ばれました。" << endl;
-//}
 
 // 個体情報を出力
 void Person::profile() {
@@ -80,8 +68,6 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 
 		// 上位save_num人を保存
 		std::vector<Person> next_generation;
-		/*next_generation.reserve(save_num);
-		std::copy(generation.begin(), generation.begin() + save_num, next_generation.begin());*/
 		for (int i = 0; i < save_num; i++) {
 			next_generation.push_back(generation[i]);
 		}
@@ -117,9 +103,6 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 
 		// 次世代を現世代に移す
 		std::copy(next_generation.begin(), next_generation.begin() + N, generation.begin());
-		/*for (int i = 0; i < N; i++) {
-			generation[i] = next_generation[i];
-		}*/
 
 		// 以降、RESET処理
 		std::vector<double> score_list;
@@ -155,11 +138,13 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 				// 半数の初期集団生成
 				int half_size = N / 2;
 				std::vector<Person> people = create_random_population(N/2, fig_type, aabb, l);
+
 				// 現世代から1位+半数を抽出
 				int sample_size = N - half_size;
 				Person best(generation[0]);
 				generation = random_sample_people(generation, sample_size - 1, 1, sample_size - 1);
 				generation.push_back(best);
+
 				// 合体
 				generation.reserve(generation.size() + people.size());
 				std::copy(people.begin(), people.end(), std::back_inserter(generation));
@@ -171,13 +156,14 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 		prev_score = current_score;
 
 		// 途中結果表示
-		if (epoch % 50 == 0) {
+		if (epoch % 100 == 0) {
 			cout << "epoch: " << epoch << endl;
 			std::vector<double> score_list;
 			std::tie(std::ignore, score_list) = ranking(generation, points, out_points, out_area);
-			print_vec_double(score_list, score_list.size(), "score");
+			print_vec_double(score_list, 10, "score");
 			print_vec_double(generation[0].p, generation[0].p.size(), "gene1");
 			//draw_person(generation[0], points, out_points, aabb);
+			cout << "///////////////////////////////////" << endl;
 
 		}
 	}
@@ -185,15 +171,15 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 	// 1位を出力
 	std::tie(generation, std::ignore) = ranking(generation, points, out_points, out_area);
 	print_vec_double(generation[0].p, generation[0].p.size(), "gene1");
+
 	// 1位の図形パラメータ
 	std::vector<double> best_p;
 	for (int i = 0; i < generation[0].p.size(); i++) {
 		best_p.push_back(generation[0].p[i]);
 	}
+
 	// 1位のスコア
 	double best_score = generation[0].score;
-
-	cout << "歴代と勝負" << endl;
 
 	// 記録した個体の中から1位のインデックスを取り出す
 	std::vector<double>::iterator iter = std::max_element(record_score.begin(), record_score.end());
@@ -201,7 +187,7 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 	print_vec_double(records[index].p, records[index].p.size(), "kako1");
 	
 	// 最終世代の1位と記録した1位を比較して、記録1位が勝ったら上書き
-	std::cout << generation[0].score << " vs " << record_score[index] << endl;
+	std::cout <<  "gene1: " << generation[0].score << " vs " << "kako1: " << record_score[index] << endl;
 	if (generation[0].score < record_score[index]) {
 		for (int i = 0; i < records[index].p.size(); i++) {
 			best_p[i] = records[index].p[i];
@@ -214,6 +200,7 @@ Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_poi
 	best.score = best_score;
 	best.score_flag = 1;
 
+	// 最終結果の個体を描画
 	print_vec_double(best.p, best.p.size(), "best");
 	draw_person(best, points, out_points, aabb);
 	return best;
@@ -225,26 +212,37 @@ Person entire_ga(cv::Mat_<double> points, cv::Mat_<double> out_points, double ou
 
 	// 円、正三角形、長方形の3種類の図形単体GAを回す
 	cout << "円" << endl;
-	Person best_circle(single_ga(0, points, out_points, out_area));
+	Person best_circle(single_ga(0, points, out_points, out_area, 300, 100, 10, 10, 15, 9));
+
+	cout << "///////////////////////////////////" << endl;
 	cout << "正三角形" << endl;
-	Person best_tri(single_ga(1, points, out_points, out_area));
+	Person best_tri(single_ga(1, points, out_points, out_area, 300, 100, 10, 10, 15, 9));
+
+	cout << "///////////////////////////////////" << endl;
 	cout << "長方形" << endl;
-	Person best_rect(single_ga(2, points, out_points, out_area));
+	Person best_rect(single_ga(2, points, out_points, out_area, 600, 200, 20, 25, 20, 10));
 
 	// スコアが一番高い図形を最終結果として出力
 	std::vector<double> score_list{ best_circle.score, best_tri.score, best_rect.score };
 	std::vector<double>::iterator iter = std::max_element(score_list.begin(), score_list.end());
 	size_t index = std::distance(score_list.begin(), iter);
 
+	// AABB生成
+	cv::Mat_<double> aabb;
+	std::tie(aabb, std::ignore) = build_aabb2d(points);
+
 	if (index == 0) {
+		draw_person(best_circle, points, out_points, aabb);
 		return best_circle;
 	}
 
 	else if (index == 1) {
+		draw_person(best_tri, points, out_points, aabb);
 		return best_tri;
 	}
 
 	else {
+		draw_person(best_rect, points, out_points, aabb);
 		return best_rect;
 	}
 	
@@ -446,9 +444,7 @@ Person crossover(std::vector<Person> parents, int fig_type, cv::Mat_<double> aab
 	// 初項c[0], p[0]を算出(c_0は0ベクトルなので何もしない)
 	cv::Mat_<double> p_0 = g + alpha * (x.row(0) - g);
 
-	for (int j = 0; j < n; j++) {
-		p(0, j) = p_0(0, j);
-	}
+	p.row(0) = p_0;
 
 	// c[i], p[i](i = 1...n)を算出していく
 	for (int i = 1; i <= n; i++) {
@@ -456,15 +452,13 @@ Person crossover(std::vector<Person> parents, int fig_type, cv::Mat_<double> aab
 		cv::Mat_<double> p_i = g + alpha * (x.row(i) - g);
 		cv::Mat_<double> c_i = r * (p.row(i - 1) - p_i + c.row(i - 1));
 
-		for (int j = 0; j < n; j++) {
-			c(i, j) = c_i(0, j);
-			p(i, j) = p_i(0, j);
-		}
+		c.row(i) = c_i;
+		p.row(i) = p_i;
+
 	}
 
 	// 子のパラメータはp[n] + c[n]となる
 	Mat_<double> child_p = c.row(n) + p.row(n);
-	//cout << child_p << endl;
 
 	std::vector<double> child_v;
 	child_p.copyTo(child_v);

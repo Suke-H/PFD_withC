@@ -1,13 +1,49 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "figure2d.h"
+#include "figure.h"
 
 using namespace std;
 using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
+///// 3D図形 /////
+
+// 平面
+// コンストラクタ
+Plane::Plane(double a, double b, double c, double d)
+{
+	this->a = a;
+	this->b = b;
+	this->c = c;
+	this->d = d;
+
+}
+
+// f_rep
+double Plane::f_rep(double x, double y, double z) {
+	return d - (a*x + b * y + c * z);
+}
+
+// f_repのリストを返す
+cv::Mat_<double> Plane::f_rep_list(cv::Mat_<double> X, cv::Mat_<double> Y, cv::Mat_<double> Z) {
+	int N = X.cols;
+
+	// 結果を保存するMat
+	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
+
+	for (int i = 0; i < N; i++) {
+		result(0, i) = f_rep(X(0, i), Y(0, i), Z(0, i));
+
+	}
+
+	return result;
+}
+
+///// 2D図形 /////
+
+// 円
 // コンストラクタ
 Circle::Circle(double u_0, double v_0, double r)
 {
@@ -39,102 +75,7 @@ cv::Mat_<double> Circle::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 	return result;
 }
 
-// コンストラクタ
-Line::Line(double a, double b, double c)
-{
-	this->a = a;
-	this->b = b;
-	this->c = c;
-}
-
-// f_rep
-double Line::f_rep(double u, double v) {
-	return c - (a * u + b * v);
-}
-
-// f_repのリストを返す
-cv::Mat_<double> Line::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
-	int N = U.cols;
-
-	// 結果を保存するMat
-	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
-
-	for (int i = 0; i < N; i++) {
-		result(0, i) = f_rep(U(0, i), V(0, i));
-
-	}
-
-	return result;
-}
-
-// コンストラクタ
-Inter2d::Inter2d(std::function<double(double, double)> f1, std::function<double(double, double)> f2)
-{
-	this->f1 = f1;
-	this->f2 = f2;
-}
-
-// f_rep
-double Inter2d::f_rep(double u, double v) {
-	return f1(u, v) + f2(u, v) - sqrt(pow(f1(u, v), 2) + pow(f2(u, v), 2));
-}
-
-// f_repのリストを返す
-cv::Mat_<double> Inter2d::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
-	int N = U.cols;
-
-	// 結果を保存するMat
-	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
-
-	for (int i = 0; i < N; i++) {
-		result(0, i) = f_rep(U(0, i), V(0, i));
-	}
-
-	return result;
-}
-
-// コンストラクタ
-Spin2d::Spin2d(std::function<double(double, double)> f, double u_0, double v_0, double t)
-{
-	this->f = f;
-	this->u_0 = u_0;
-	this->v_0 = v_0;
-	this->t = t;
-
-	// 回転行列
-	double a = std::cos(t);
-	double b = std::sin(t);
-	r = (cv::Mat_<double>(2, 2) << a, -b, b, a);
-	// 逆行列
-	r_inv = r.inv();
-
-}
-
-// f_rep
-// x = r_inv(X-x0) + x0 をf(x)に代入する
-double Spin2d::f_rep(double u, double v) {
-	cv::Mat p = (cv::Mat_<double>(2, 1) << u, v);
-	cv::Mat x_0 = (cv::Mat_<double>(2, 1) << u_0, v_0);
-
-	cv::Mat_<double> x = r_inv * (p - x_0) + x_0;
-
-	return f(x(0, 0), x(1, 0));
-}
-
-// f_repのリストを返す
-cv::Mat_<double> Spin2d::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
-	int N = U.cols;
-
-	// 結果を保存するMat
-	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
-
-	for (int i = 0; i < N; i++) {
-		result(0, i) = f_rep(U(0, i), V(0, i));
-	}
-
-	return result;
-}
-
+// 正三角形
 // コンストラクタ
 Triangle::Triangle(double u_0, double v_0, double r, double t)
 {
@@ -153,8 +94,8 @@ double Triangle::f_rep(double u, double v) {
 
 	// 3辺の直線定義
 	Line l1(0, -1, -v_0 + r / 2);
-	Line l2(sqrt(3)/2, 0.5, sqrt(3)/2*u_0 + v_0/2 + r/2);
-	Line l3(-sqrt(3)/2, 0.5, -sqrt(3)/2*u_0 + v_0/2 + r/2);
+	Line l2(sqrt(3) / 2, 0.5, sqrt(3) / 2 * u_0 + v_0 / 2 + r / 2);
+	Line l3(-sqrt(3) / 2, 0.5, -sqrt(3) / 2 * u_0 + v_0 / 2 + r / 2);
 
 	std::function<double(double, double)> f1 =
 		std::bind(&Line::f_rep, &l1, std::placeholders::_1, std::placeholders::_2);
@@ -192,6 +133,7 @@ cv::Mat_<double> Triangle::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 	return result;
 }
 
+// 長方形
 // コンストラクタ
 Rectangle::Rectangle(double u_0, double v_0, double w, double h, double t)
 {
@@ -243,6 +185,105 @@ cv::Mat_<double> Rectangle::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
 
 	// 結果を保存するMat
 	cv::Mat_<double> result = cv::Mat_<double>::zeros(1, N);
+
+	for (int i = 0; i < N; i++) {
+		result(0, i) = f_rep(U(0, i), V(0, i));
+	}
+
+	return result;
+}
+
+// 直線
+// コンストラクタ
+Line::Line(double a, double b, double c)
+{
+	this->a = a;
+	this->b = b;
+	this->c = c;
+}
+
+// f_rep
+double Line::f_rep(double u, double v) {
+	return c - (a * u + b * v);
+}
+
+// f_repのリストを返す
+cv::Mat_<double> Line::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
+	int N = U.cols;
+
+	// 結果を保存するMat
+	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
+
+	for (int i = 0; i < N; i++) {
+		result(0, i) = f_rep(U(0, i), V(0, i));
+
+	}
+
+	return result;
+}
+
+// intersection演算
+// コンストラクタ
+Inter2d::Inter2d(std::function<double(double, double)> f1, std::function<double(double, double)> f2)
+{
+	this->f1 = f1;
+	this->f2 = f2;
+}
+
+// f_rep
+double Inter2d::f_rep(double u, double v) {
+	return f1(u, v) + f2(u, v) - sqrt(pow(f1(u, v), 2) + pow(f2(u, v), 2));
+}
+
+// f_repのリストを返す
+cv::Mat_<double> Inter2d::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
+	int N = U.cols;
+
+	// 結果を保存するMat
+	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
+
+	for (int i = 0; i < N; i++) {
+		result(0, i) = f_rep(U(0, i), V(0, i));
+	}
+
+	return result;
+}
+
+// spin演算：(u0, v0)を中心に反時計回りにt(rad)回転させる
+// コンストラクタ
+Spin2d::Spin2d(std::function<double(double, double)> f, double u_0, double v_0, double t)
+{
+	this->f = f;
+	this->u_0 = u_0;
+	this->v_0 = v_0;
+	this->t = t;
+
+	// 回転行列
+	double a = std::cos(t);
+	double b = std::sin(t);
+	r = (cv::Mat_<double>(2, 2) << a, -b, b, a);
+	// 逆行列
+	r_inv = r.inv();
+
+}
+
+// f_rep
+// x = r_inv(X-x0) + x0 をf(x)に代入する
+double Spin2d::f_rep(double u, double v) {
+	cv::Mat p = (cv::Mat_<double>(2, 1) << u, v);
+	cv::Mat x_0 = (cv::Mat_<double>(2, 1) << u_0, v_0);
+
+	cv::Mat_<double> x = r_inv * (p - x_0) + x_0;
+
+	return f(x(0, 0), x(1, 0));
+}
+
+// f_repのリストを返す
+cv::Mat_<double> Spin2d::f_rep_list(cv::Mat_<double> U, cv::Mat_<double> V) {
+	int N = U.cols;
+
+	// 結果を保存するMat
+	cv::Mat_<float> result = cv::Mat_<float>::zeros(1, N);
 
 	for (int i = 0; i < N; i++) {
 		result(0, i) = f_rep(U(0, i), V(0, i));

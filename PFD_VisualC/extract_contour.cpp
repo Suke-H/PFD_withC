@@ -1,12 +1,15 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <matplotlibcpp.h>
+
+namespace plt = matplotlibcpp;
 
 using namespace std;
 using namespace cv;
 typedef Point3f point_t;
 typedef vector<point_t> points_t;
 
-#include "tools2d.h"
+#include "tools.h"
 #include "extract_contour.h"
 
 // 輪郭抽出
@@ -21,7 +24,12 @@ std::tuple<int, cv::Mat_<double>, cv::Mat_<double>, double> extract_contour(cv::
 	// 画像からモルフォロジーを利用して、領域面積最大の輪郭点抽出
 	int ret;
 	std::vector< cv::Point > contour;
-	std::tie(ret, contour) = morphology(pix, dilate_size, close_size, open_size, add_size);
+	double pix_area;
+	std::tie(ret, contour, pix_area) = morphology(pix, dilate_size, close_size, open_size, add_size);
+
+	// 画像上での図形の面積
+	double area = pix_area * (dx*dy) / (px*py);
+	cout << "area: " << area << endl;
 
 	// モルフォロジー演算に失敗した場合の処理
 	if (!ret) {
@@ -32,8 +40,8 @@ std::tuple<int, cv::Mat_<double>, cv::Mat_<double>, double> extract_contour(cv::
 	cv::Mat_<double> contour_mat = trans_points(contour, dx, dy, px, py, cx, cy);
 
 	// 輪郭の面積
-	std::vector< cv::Point > contour_points = mat_to_vec2(contour_mat);
-	double area = cv::contourArea(contour_points);
+	/*std::vector< cv::Point > contour_points = mat_to_vec2(contour_mat);
+	double area = cv::contourArea(contour_points);*/
 
 	// 輪郭の内外判定
 	std::vector<int> in_list;
@@ -44,9 +52,9 @@ std::tuple<int, cv::Mat_<double>, cv::Mat_<double>, double> extract_contour(cv::
 	}
 
 	// 輪郭内にある点だけ抽出
-	points = extract_rows(points, in_list);
+	cv::Mat_<double> inside_points = extract_rows(points, in_list);
 
-	return std::forward_as_tuple(1, points, contour_mat, area);
+	return std::forward_as_tuple(1, inside_points, contour_mat, area);
 
 }
 
@@ -109,7 +117,7 @@ std::tuple<cv::Mat, double, double, int, int, double, double> trans_pix(cv::Mat_
 }
 
 // モルフォロジー演算で輪郭抽出
-std::tuple<int, std::vector< cv::Point >> morphology(cv::Mat pix, int dilate_size, int close_size, int open_size, int add_size) {
+std::tuple<int, std::vector< cv::Point >, double> morphology(cv::Mat pix, int dilate_size, int close_size, int open_size, int add_size) {
 
 	// カーネル作成
 	cv::Mat dilate_kernel(dilate_size, dilate_size, CV_8U, cv::Scalar::all(255));
@@ -155,14 +163,14 @@ std::tuple<int, std::vector< cv::Point >> morphology(cv::Mat pix, int dilate_siz
 
 	// 輪郭が取り出せない場合の処理
 	if (max_contour.empty()) {
-		return std::forward_as_tuple(0, max_contour);
+		return std::forward_as_tuple(0, max_contour, 0);
 	}
 
 	// 凸包の取得
 	std::vector< cv::Point > hull;
 	cv::convexHull(max_contour, hull);
 
-	return std::forward_as_tuple(1, hull);
+	return std::forward_as_tuple(1, hull, max_area);
 }
 
 // 画像座標の輪郭点を点群座標に変換
@@ -176,7 +184,7 @@ cv::Mat_<double> trans_points(std::vector< cv::Point >  contour, double dx, doub
 	// 画像座標の輪郭点を点群座標に変換
 	for (int i = 0; i < N; i++) {
 		points(i, 0) = cx + dx / px * (2 * contour[i].x + 1) / 2;
-		points(i, 1) = cy + dy / py * (2 * py - 2 * contour[i].y - 1) / 2;
+		points(i, 1) = cy + dy / py * (2 * contour[i].y + 1) / 2;
 	}
 
 	return points;

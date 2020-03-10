@@ -31,7 +31,7 @@ public:
 
 //1種類の図形単体のGA
 Person single_ga(int fig_type, cv::Mat_<double> points, cv::Mat_<double> out_points, double out_area,
-	int n_epoch = 300, int N = 100, int save_num = 15, int tournament_size = 20, 
+	int n_epoch = 300, int N = 100, int save_num = 5, int tournament_size = 20, 
 	int half_reset_num = 10, int all_reset_num = 10);
 
 // 3種類の図形単体GAを回してスコア最大の図形を選択
