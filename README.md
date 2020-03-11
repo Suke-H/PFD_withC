@@ -38,23 +38,23 @@ int main()
     // sign_type: 標識
     // 0:         半径0.3mの円
     // 1:         1辺0.8mの正三角形
-	// 2:         1辺0.9mの正方形
-	// 3:         1辺0.45mのひし形(正方形)
-	int sign_type = 0; 
+    // 2:         1辺0.9mの正方形
+    // 3:         1辺0.45mのひし形(正方形)
+    int sign_type = 0; 
 
     // scale: 上記のサイズからの倍率
     int scale = 1;
 
     // density: 点群の密度(数/m^2)
-	double density = 2500;
+    double density = 2500;
 
     // dilate_size, close_size, open_size, add_size:
     // モルフォロジー演算のカーネルサイズ
-	// モルフォロジー演算がうまくいかなかったら
+    // モルフォロジー演算がうまくいかなかったら
     // dilate_sizeを上げる必要あり
-	int dilate_size = 50, close_size = 20, open_size = 70, add_size = 20;
+    int dilate_size = 50, close_size = 20, open_size = 70, add_size = 20;
 
-	simulation(sign_type, scale, density, dilate_size, close_size, open_size, add_size);
+    simulation(sign_type, scale, density, dilate_size, close_size, open_size, add_size);
 }
 ```
 
@@ -85,9 +85,9 @@ int main()
 
     // dilate_size, close_size, open_size, add_size:
     // モルフォロジー演算のカーネルサイズ
-	// モルフォロジー演算がうまくいかなかったら
+    // モルフォロジー演算がうまくいかなかったら
     // dilate_sizeを上げる必要あり
-	int dilate_size = 50, close_size = 20, open_size = 70, add_size = 20;
+    int dilate_size = 50, close_size = 20, open_size = 70, add_size = 20;
 
     // ... 略
 
