@@ -60,7 +60,7 @@ int main()
 
 **結果:**
 
-<img src="./samples/simulation.png" width="400px">
+<img src="./samples/simulation.PNG" width="400px">
 
 (オレンジが二次元に射影した点群、赤が輪郭点、青が検出図形)
 
