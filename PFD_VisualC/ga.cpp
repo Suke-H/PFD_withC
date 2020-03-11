@@ -212,11 +212,11 @@ Person entire_ga(cv::Mat_<double> points, cv::Mat_<double> out_points, double ou
 
 	// 円、正三角形、長方形の3種類の図形単体GAを回す
 	cout << "円" << endl;
-	Person best_circle(single_ga(0, points, out_points, out_area, 300, 100, 10, 10, 15, 9));
+	Person best_circle(single_ga(0, points, out_points, out_area, 300, 200, 20, 10, 15, 9));
 
 	cout << "///////////////////////////////////" << endl;
 	cout << "正三角形" << endl;
-	Person best_tri(single_ga(1, points, out_points, out_area, 300, 100, 10, 10, 15, 9));
+	Person best_tri(single_ga(1, points, out_points, out_area, 500, 200, 20, 10, 20, 10));
 
 	cout << "///////////////////////////////////" << endl;
 	cout << "長方形" << endl;
